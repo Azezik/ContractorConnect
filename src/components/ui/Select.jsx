@@ -1,4 +1,4 @@
-export function Select({ label, error, options = [], placeholder = 'Select one', ...props }) {
+export function Select({ label, error, hint, options = [], placeholder = 'Select one', ...props }) {
   return (
     <label className="field">
       {label ? <span className="field__label">{label}</span> : null}
@@ -20,6 +20,7 @@ export function Select({ label, error, options = [], placeholder = 'Select one',
           );
         })}
       </select>
+      {hint ? <span className="field__hint">{hint}</span> : null}
       {error ? <span className="field__error">{error}</span> : null}
     </label>
   );

@@ -3,6 +3,7 @@ import { db } from '../firebase/firebase';
 import { MODERATION_STATUS } from '../constants/moderationStatus';
 import { buildContractorProfileStoragePath } from './storagePaths';
 import { STORAGE_UPLOAD_POLICIES, uploadFiles } from './storageService';
+import { buildContractorMatchingProfile, normalizePostalCode } from '../lib/matching/matchingModel';
 
 export async function upsertContractorProfile({ ownerId, values, imageFiles = [] }) {
   const profileRef = doc(db, 'contractorProfiles', ownerId);
@@ -23,13 +24,17 @@ export async function upsertContractorProfile({ ownerId, values, imageFiles = []
       businessName: values.businessName,
       displayName: values.displayName || '',
       categories: values.categories,
-      serviceArea: values.serviceArea,
+      postalCode: normalizePostalCode(values.postalCode),
+      workRadiusKm: Number(values.workRadiusKm) || null,
+      serviceArea: values.serviceAreaDescription || '',
+      serviceAreaDescription: values.serviceAreaDescription || '',
       bio: values.bio,
       servicesOffered: values.servicesOffered,
       tags: values.tags,
       phone: values.phone || null,
       website: values.website || null,
       availabilityStatus: values.availabilityStatus,
+      matchingProfile: buildContractorMatchingProfile(values),
       imageUrls: uploads.map((file) => file.url),
       imageMeta: uploads,
       averageRating: 0,

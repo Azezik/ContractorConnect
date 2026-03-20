@@ -27,17 +27,17 @@ export function validateContractorOnboarding(values, step) {
 
   if (step >= 1) {
     if (!isRequired(values.businessName)) errors.businessName = 'Business name is required.';
+    if (!isRequired(values.bio)) errors.bio = 'Business bio is required.';
     if (!values.categories?.length) errors.categories = 'Choose at least one category.';
   }
 
   if (step >= 2) {
-    if (!isRequired(values.serviceArea)) errors.serviceArea = 'Service area is required.';
-    if (!isRequired(values.bio)) errors.bio = 'Business bio is required.';
+    if (!isRequired(values.postalCode)) errors.postalCode = 'Postal code is required.';
+    if (!isRequired(values.workRadiusKm)) errors.workRadiusKm = 'Select how far you are willing to travel.';
   }
 
   if (step >= 3) {
     if (!values.servicesOffered?.length) errors.servicesOffered = 'Add at least one service.';
-    if (!values.tags?.length) errors.tags = 'Add at least one tag.';
   }
 
   return errors;

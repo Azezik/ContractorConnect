@@ -17,19 +17,24 @@ import { JOB_STATUS } from '../constants/jobStatus';
 import { MODERATION_STATUS } from '../constants/moderationStatus';
 import { buildJobPostStoragePath } from './storagePaths';
 import { STORAGE_UPLOAD_POLICIES, uploadFiles } from './storageService';
+import { buildJobMatchingProfile, normalizePostalCode } from '../lib/matching/matchingModel';
 
 const jobPostsCollection = collection(db, 'jobPosts');
 
 export async function createJobPost({ ownerId, ownerSnapshot, values, imageFiles = [], primaryImageIndex = 0 }) {
   const docRef = await addDoc(jobPostsCollection, {
     ownerId,
-    ownerSnapshot,
+    ownerSnapshot: {
+      ...ownerSnapshot,
+      postalCode: normalizePostalCode(ownerSnapshot?.postalCode),
+    },
     title: values.title,
     category: values.category,
     description: values.description,
     city: values.city,
-    postalCode: values.postalCode,
+    postalCode: normalizePostalCode(values.postalCode),
     tags: values.tags,
+    matchingProfile: buildJobMatchingProfile(values),
     budget: values.budget || null,
     timeline: values.timeline || null,
     imageUrls: [],
