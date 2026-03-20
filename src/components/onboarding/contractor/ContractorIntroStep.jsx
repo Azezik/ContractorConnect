@@ -3,13 +3,15 @@ import { StepLayout } from '../StepLayout';
 export function ContractorIntroStep() {
   return (
     <StepLayout
-      title="Create a business profile customers can trust"
-      description="This flow creates your contractor profile, service tags, and availability status for the live beta."
+      title="Build the profile customers will judge you by"
+      description="Set up the profile that represents your business in search, outreach, and future job matching."
     >
       <div className="info-callout">
         <p>
-          Customers should be able to see who you are, what you do, where you work, and how to message you through the platform.
+          Think of this as your storefront. First impressions matter. This is the profile customers will see when you reach out,
+          and it helps us match you with better, more relevant jobs.
         </p>
+        <p>A more complete profile leads to higher-quality opportunities.</p>
       </div>
     </StepLayout>
   );

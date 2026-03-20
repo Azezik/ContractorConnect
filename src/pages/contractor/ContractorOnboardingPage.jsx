@@ -3,11 +3,11 @@ import { ContractorOnboardingFlow } from '../../components/onboarding/contractor
 import { useCurrentUser } from '../../hooks/useCurrentUser';
 
 export function ContractorOnboardingPage() {
-  const { userId } = useCurrentUser();
+  const { userId, userDoc } = useCurrentUser();
 
   return (
     <PageContainer>
-      <ContractorOnboardingFlow userId={userId} />
+      <ContractorOnboardingFlow userId={userId} userDoc={userDoc} />
     </PageContainer>
   );
 }

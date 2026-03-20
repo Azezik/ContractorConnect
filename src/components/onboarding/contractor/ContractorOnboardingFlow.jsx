@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { MultiStepShell } from '../../ui/MultiStepShell';
 import { StepProgress } from '../StepProgress';
@@ -21,8 +21,10 @@ const initialValues = {
   businessName: '',
   displayName: '',
   categories: [],
-  serviceArea: '',
   bio: '',
+  postalCode: '',
+  workRadiusKm: '',
+  serviceAreaDescription: '',
   servicesOffered: [],
   tags: [],
   phone: '',
@@ -31,12 +33,19 @@ const initialValues = {
   imageFiles: [],
 };
 
-export function ContractorOnboardingFlow({ userId }) {
+export function ContractorOnboardingFlow({ userId, userDoc }) {
   const navigate = useNavigate();
   const [step, setStep] = useState(1);
   const [values, setValues] = useState(initialValues);
   const [errors, setErrors] = useState({});
   const { loading, error, start, fail, succeed } = useAsyncState();
+
+  useEffect(() => {
+    setValues((current) => ({
+      ...current,
+      postalCode: current.postalCode || userDoc?.postalCode || '',
+    }));
+  }, [userDoc]);
 
   const stepComponent = useMemo(() => {
     switch (step) {
@@ -57,6 +66,12 @@ export function ContractorOnboardingFlow({ userId }) {
 
   function handleChange(field, nextValue) {
     setValues((current) => ({ ...current, [field]: nextValue }));
+    setErrors((current) => {
+      if (!current[field]) return current;
+      const nextErrors = { ...current };
+      delete nextErrors[field];
+      return nextErrors;
+    });
   }
 
   function handleNext() {
@@ -89,8 +104,8 @@ export function ContractorOnboardingFlow({ userId }) {
   return (
     <MultiStepShell
       eyebrow="Contractor onboarding"
-      title="Build your service profile"
-      description="Create a real contractor profile with categories, service area, tags, and availability."
+      title="Build the storefront customers and matching rely on"
+      description="Create a polished contractor profile with business identity, structured service coverage, and the job types you want to win."
       progress={<StepProgress steps={STEPS} currentStep={step} />}
       footer={
         <div className="step-actions">
