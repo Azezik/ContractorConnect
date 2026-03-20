@@ -8,8 +8,7 @@ export function CustomerIntroStep() {
     >
       <div className="info-callout">
         <p>
-          This setup ends with a real Firestore job post tied to your account. Images are optional, but the data model
-          already supports them.
+          You’ll publish a real job post that contractors in your area can respond to.
         </p>
       </div>
     </StepLayout>

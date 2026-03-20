@@ -12,10 +12,11 @@ export function validateCustomerOnboarding(values, step) {
     if (!isRequired(values.description)) errors.description = 'Description is required.';
     if (!isRequired(values.city)) errors.city = 'City is required.';
     if (!isRequired(values.postalCode)) errors.postalCode = 'Postal code is required.';
+    if (!values.tags?.length) errors.tags = 'Add at least one tag so contractors can find your post.';
   }
 
-  if (step >= 3 && !values.tags?.length) {
-    errors.tags = 'Add at least one tag so contractors can find your post.';
+  if (step >= 3 && !values.imageFiles?.length) {
+    errors.imageFiles = 'Add at least one photo before continuing.';
   }
 
   return errors;
