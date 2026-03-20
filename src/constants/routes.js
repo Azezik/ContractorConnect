@@ -1,0 +1,18 @@
+export const ROUTES = {
+  LANDING: '/',
+  LOGIN: '/login',
+  SIGNUP: '/signup',
+  DASHBOARD: '/dashboard',
+  ROLE_SELECT: '/role-select',
+  CUSTOMER_ONBOARDING: '/onboarding/customer',
+  CONTRACTOR_ONBOARDING: '/onboarding/contractor',
+  CUSTOMER_HOME: '/customer/home',
+  CONTRACTOR_HOME: '/contractor/home',
+  JOBS_NEW: '/jobs/new',
+  JOBS_MINE: '/jobs/mine',
+  FEED: '/feed',
+  CONTRACTOR_PROFILE: '/contractor/profile',
+  INBOX: '/inbox',
+  SETTINGS: '/settings',
+  MODERATION_QUEUE: '/moderation/queue',
+};
