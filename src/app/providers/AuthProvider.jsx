@@ -2,7 +2,7 @@ import { createContext, useEffect, useMemo, useState } from 'react';
 import { onAuthStateChanged } from 'firebase/auth';
 import { auth } from '../../firebase/firebase';
 import { FIRESTORE_PROFILE_PERMISSION_MESSAGE, isFirestorePermissionError } from '../../lib/firebase/firebaseErrorUtils';
-import { ensureUserDocument, subscribeToUserDocument } from '../../services/userService';
+import { ensureUserDocument, subscribeToUserDocument, synchronizeUserDocumentShape } from '../../services/userService';
 
 export const AuthContext = createContext(null);
 
@@ -45,6 +45,7 @@ export function AuthProvider({ children }) {
             setUserDoc(docData);
             setAuthIssue('');
             setLoading(false);
+            synchronizeUserDocumentShape(user.uid, docData).catch(() => {});
             return;
           }
 

@@ -1,9 +1,7 @@
-import { Navigate, Route, Routes } from 'react-router-dom';
+import { Navigate, Outlet, Route, Routes } from 'react-router-dom';
 import { AppShell } from '../../components/layout/AppShell';
-import { ProtectedRoute } from './ProtectedRoute';
-import { RoleGate } from './RoleGate';
 import { ROUTES } from '../../constants/routes';
-import { ROLES } from '../../constants/roles';
+import { ACCOUNT_ROLES, ROLES } from '../../constants/roles';
 import { LandingPage } from '../../pages/LandingPage';
 import { LoginPage } from '../../pages/LoginPage';
 import { SignupPage } from '../../pages/SignupPage';
@@ -16,162 +14,89 @@ import { ContractorHomePage } from '../../pages/contractor/ContractorHomePage';
 import { CreateJobPage } from '../../pages/customer/CreateJobPage';
 import { JobFeedPage } from '../../pages/contractor/JobFeedPage';
 import { ContractorProfilePage } from '../../pages/contractor/ContractorProfilePage';
-import { JobDetailsPage } from '../../pages/jobs/JobDetailsPage';
+import { ClientJobDetailsPage } from '../../pages/jobs/ClientJobDetailsPage';
+import { ContractorJobDetailsPage } from '../../pages/jobs/ContractorJobDetailsPage';
 import { MyJobPostsPage } from '../../pages/jobs/MyJobPostsPage';
 import { InboxPage } from '../../pages/inbox/InboxPage';
 import { ConversationPage } from '../../pages/inbox/ConversationPage';
 import { SettingsPage } from '../../pages/settings/SettingsPage';
 import { ModerationQueuePage } from '../../pages/moderation/ModerationQueuePage';
 import { NotFoundPage } from '../../pages/NotFoundPage';
+import { ProtectedRoute } from './ProtectedRoute';
+import { RoleGate } from './RoleGate';
+
+function ShellLayout() {
+  return (
+    <AppShell>
+      <Outlet />
+    </AppShell>
+  );
+}
 
 export function AppRouter() {
   return (
-    <AppShell>
-      <Routes>
+    <Routes>
+      <Route element={<ShellLayout />}>
         <Route path={ROUTES.LANDING} element={<LandingPage />} />
         <Route path={ROUTES.LOGIN} element={<LoginPage />} />
         <Route path={ROUTES.SIGNUP} element={<SignupPage />} />
-        <Route
-          path={ROUTES.DASHBOARD}
-          element={
-            <ProtectedRoute>
-              <DashboardPage />
-            </ProtectedRoute>
-          }
-        />
-        <Route
-          path={ROUTES.ROLE_SELECT}
-          element={
-            <ProtectedRoute>
-              <RoleSelectionPage />
-            </ProtectedRoute>
-          }
-        />
-        <Route
-          path={ROUTES.CUSTOMER_ONBOARDING}
-          element={
-            <ProtectedRoute>
-              <RoleGate allowedRoles={[ROLES.CUSTOMER]}>
-                <CustomerOnboardingPage />
-              </RoleGate>
-            </ProtectedRoute>
-          }
-        />
-        <Route
-          path={ROUTES.CONTRACTOR_ONBOARDING}
-          element={
-            <ProtectedRoute>
-              <RoleGate allowedRoles={[ROLES.CONTRACTOR]}>
-                <ContractorOnboardingPage />
-              </RoleGate>
-            </ProtectedRoute>
-          }
-        />
-        <Route
-          path={ROUTES.CUSTOMER_HOME}
-          element={
-            <ProtectedRoute>
-              <RoleGate allowedRoles={[ROLES.CUSTOMER]}>
-                <CustomerHomePage />
-              </RoleGate>
-            </ProtectedRoute>
-          }
-        />
-        <Route
-          path={ROUTES.CONTRACTOR_HOME}
-          element={
-            <ProtectedRoute>
-              <RoleGate allowedRoles={[ROLES.CONTRACTOR]}>
-                <ContractorHomePage />
-              </RoleGate>
-            </ProtectedRoute>
-          }
-        />
-        <Route
-          path={ROUTES.JOBS_NEW}
-          element={
-            <ProtectedRoute>
-              <RoleGate allowedRoles={[ROLES.CUSTOMER]}>
-                <CreateJobPage />
-              </RoleGate>
-            </ProtectedRoute>
-          }
-        />
-        <Route
-          path={ROUTES.JOBS_MINE}
-          element={
-            <ProtectedRoute>
-              <RoleGate allowedRoles={[ROLES.CUSTOMER]}>
-                <MyJobPostsPage />
-              </RoleGate>
-            </ProtectedRoute>
-          }
-        />
-        <Route
-          path={ROUTES.FEED}
-          element={
-            <ProtectedRoute>
-              <RoleGate allowedRoles={[ROLES.CONTRACTOR]}>
-                <JobFeedPage />
-              </RoleGate>
-            </ProtectedRoute>
-          }
-        />
-        <Route
-          path={ROUTES.CONTRACTOR_PROFILE}
-          element={
-            <ProtectedRoute>
-              <RoleGate allowedRoles={[ROLES.CONTRACTOR]}>
-                <ContractorProfilePage />
-              </RoleGate>
-            </ProtectedRoute>
-          }
-        />
-        <Route
-          path="/jobs/:jobId"
-          element={
-            <ProtectedRoute>
-              <JobDetailsPage />
-            </ProtectedRoute>
-          }
-        />
-        <Route
-          path={ROUTES.INBOX}
-          element={
-            <ProtectedRoute>
-              <InboxPage />
-            </ProtectedRoute>
-          }
-        />
-        <Route
-          path="/inbox/:conversationId"
-          element={
-            <ProtectedRoute>
-              <ConversationPage />
-            </ProtectedRoute>
-          }
-        />
-        <Route
-          path={ROUTES.SETTINGS}
-          element={
-            <ProtectedRoute>
-              <SettingsPage />
-            </ProtectedRoute>
-          }
-        />
-        <Route
-          path={ROUTES.MODERATION_QUEUE}
-          element={
-            <ProtectedRoute>
+
+        <Route element={<ProtectedRoute />}>
+          <Route path={ROUTES.APP_HOME} element={<DashboardPage />} />
+          <Route path={ROUTES.ROLE_SELECT} element={<RoleSelectionPage />} />
+
+          <Route element={<RoleGate allowedRoles={[ACCOUNT_ROLES.CLIENT]} redirectIfOnboardingComplete />}>
+            <Route path={ROUTES.CLIENT_ONBOARDING} element={<CustomerOnboardingPage />} />
+          </Route>
+          <Route element={<RoleGate allowedRoles={[ACCOUNT_ROLES.CLIENT]} requireOnboarding />}>
+            <Route path={ROUTES.CLIENT_ROOT} element={<Navigate to={ROUTES.CLIENT_HOME} replace />} />
+            <Route path={ROUTES.CLIENT_HOME} element={<CustomerHomePage />} />
+            <Route path={ROUTES.CLIENT_JOBS_NEW} element={<CreateJobPage />} />
+            <Route path={ROUTES.CLIENT_JOBS} element={<MyJobPostsPage />} />
+            <Route path="/client/jobs/:jobId" element={<ClientJobDetailsPage />} />
+            <Route path={ROUTES.CLIENT_INBOX} element={<InboxPage />} />
+            <Route path="/client/inbox/:conversationId" element={<ConversationPage />} />
+            <Route path={ROUTES.CLIENT_SETTINGS} element={<SettingsPage />} />
+          </Route>
+
+          <Route element={<RoleGate allowedRoles={[ACCOUNT_ROLES.CONTRACTOR]} redirectIfOnboardingComplete />}>
+            <Route path={ROUTES.CONTRACTOR_ONBOARDING} element={<ContractorOnboardingPage />} />
+          </Route>
+          <Route element={<RoleGate allowedRoles={[ACCOUNT_ROLES.CONTRACTOR]} requireOnboarding />}>
+            <Route path={ROUTES.CONTRACTOR_ROOT} element={<Navigate to={ROUTES.CONTRACTOR_HOME} replace />} />
+            <Route path={ROUTES.CONTRACTOR_HOME} element={<ContractorHomePage />} />
+            <Route path={ROUTES.CONTRACTOR_FEED} element={<JobFeedPage />} />
+            <Route path={ROUTES.CONTRACTOR_PROFILE} element={<ContractorProfilePage />} />
+            <Route path="/contractor/jobs/:jobId" element={<ContractorJobDetailsPage />} />
+            <Route path={ROUTES.CONTRACTOR_INBOX} element={<InboxPage />} />
+            <Route path="/contractor/inbox/:conversationId" element={<ConversationPage />} />
+            <Route path={ROUTES.CONTRACTOR_SETTINGS} element={<SettingsPage />} />
+          </Route>
+
+          <Route
+            path={ROUTES.MODERATION_QUEUE}
+            element={
               <RoleGate allowedRoles={[ROLES.MODERATOR, ROLES.ADMIN]}>
                 <ModerationQueuePage />
               </RoleGate>
-            </ProtectedRoute>
-          }
-        />
+            }
+          />
+
+          <Route path="/dashboard" element={<Navigate to={ROUTES.APP_HOME} replace />} />
+          <Route path="/onboarding/customer" element={<Navigate to={ROUTES.CLIENT_ONBOARDING} replace />} />
+          <Route path="/customer/home" element={<Navigate to={ROUTES.CLIENT_HOME} replace />} />
+          <Route path="/jobs/new" element={<Navigate to={ROUTES.CLIENT_JOBS_NEW} replace />} />
+          <Route path="/jobs/mine" element={<Navigate to={ROUTES.CLIENT_JOBS} replace />} />
+          <Route path="/feed" element={<Navigate to={ROUTES.CONTRACTOR_FEED} replace />} />
+          <Route path="/jobs/:jobId" element={<DashboardPage />} />
+          <Route path="/inbox" element={<DashboardPage />} />
+          <Route path="/inbox/:conversationId" element={<DashboardPage />} />
+          <Route path="/settings" element={<DashboardPage />} />
+        </Route>
+
         <Route path="*" element={<NotFoundPage />} />
-        <Route path="" element={<Navigate to={ROUTES.LANDING} replace />} />
-      </Routes>
-    </AppShell>
+      </Route>
+      <Route path="" element={<Navigate to={ROUTES.LANDING} replace />} />
+    </Routes>
   );
 }

@@ -1,22 +1,17 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { PageContainer } from '../../components/layout/PageContainer';
 import { ContractorProfileCard } from '../../components/contractors/ContractorProfileCard';
 import { ContractorSummaryPanel } from '../../components/contractors/ContractorSummaryPanel';
 import { Card } from '../../components/ui/Card';
-import { Textarea } from '../../components/ui/Textarea';
-import { Input } from '../../components/ui/Input';
-import { Button } from '../../components/ui/Button';
 import { useCurrentUser } from '../../hooks/useCurrentUser';
 import { useContractorProfile } from '../../hooks/useContractorProfile';
-import { createReview, subscribeToContractorReviews } from '../../services/reviewService';
+import { subscribeToContractorReviews } from '../../services/reviewService';
 import { formatDate } from '../../lib/formatters/dates';
 
 export function ContractorProfilePage() {
-  const { userId, userDoc } = useCurrentUser();
+  const { userId } = useCurrentUser();
   const { profile } = useContractorProfile(userId);
   const [reviews, setReviews] = useState([]);
-  const [form, setForm] = useState({ rating: '5', reviewText: '' });
-  const canLeaveReview = useMemo(() => userDoc?.primaryRole === 'customer', [userDoc]);
 
   useEffect(() => {
     if (!userId) return undefined;
@@ -32,19 +27,6 @@ export function ContractorProfilePage() {
         </Card>
       </PageContainer>
     );
-  }
-
-  async function handleReviewSubmit(event) {
-    event.preventDefault();
-    if (!canLeaveReview) return;
-    await createReview({
-      contractorId: userId,
-      reviewerId: userDoc.id,
-      jobPostId: null,
-      rating: Number(form.rating),
-      reviewText: form.reviewText,
-    });
-    setForm({ rating: '5', reviewText: '' });
   }
 
   return (
@@ -74,7 +56,7 @@ export function ContractorProfilePage() {
           <Card>
             <h3>Reviews and trust</h3>
             <p>
-              Customer feedback appears here so future clients can quickly understand the quality of your work and communication.
+              This contractor-only workspace shows the public reviews attached to your business profile without mixing in client account controls.
             </p>
             {reviews.length ? (
               <div className="review-list">
@@ -90,16 +72,6 @@ export function ContractorProfilePage() {
               <p>No public reviews yet.</p>
             )}
           </Card>
-          {canLeaveReview ? (
-            <Card>
-              <h3>Leave a review</h3>
-              <form className="form-stack" onSubmit={handleReviewSubmit}>
-                <Input label="Rating (1-5)" value={form.rating} onChange={(e) => setForm((current) => ({ ...current, rating: e.target.value }))} />
-                <Textarea label="Review" rows={4} value={form.reviewText} onChange={(e) => setForm((current) => ({ ...current, reviewText: e.target.value }))} />
-                <Button type="submit">Submit review</Button>
-              </form>
-            </Card>
-          ) : null}
         </div>
       </div>
     </PageContainer>

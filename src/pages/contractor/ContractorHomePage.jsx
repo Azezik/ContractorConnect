@@ -10,14 +10,14 @@ export function ContractorHomePage() {
     <PageContainer>
       <SectionHeader
         eyebrow="Contractor dashboard"
-        title="Your marketplace workspace"
-        description="Use the feed to find active jobs, keep your profile updated, and manage conversations through the in-platform inbox."
-        action={<Link to={ROUTES.FEED}><Button>Open job feed</Button></Link>}
+        title="Your contractor workspace"
+        description="This area stays focused on contractor workflows only: matched jobs, your profile, and client conversations tied to your outreach."
+        action={<Link to={ROUTES.CONTRACTOR_FEED}><Button>Open job feed</Button></Link>}
       />
       <div className="stats-grid">
-        <Card><strong>Browse local demand</strong><span>Use tags, city, and category filters in the feed.</span></Card>
-        <Card><strong>Message inside the app</strong><span>Start conversations without exposing your email.</span></Card>
-        <Card><strong>Build credibility</strong><span>Profiles, reviews, and reporting tools help customers feel confident contacting you.</span></Card>
+        <Card><strong>Browse local demand</strong><span>Use the matched feed to find active work that fits your services and coverage.</span></Card>
+        <Card><strong>Message inside the app</strong><span>Reach clients from job details without entering client job-management screens.</span></Card>
+        <Card><strong>Build credibility</strong><span>Your contractor profile stays separate from client job-posting tools.</span></Card>
       </div>
     </PageContainer>
   );

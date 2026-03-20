@@ -1,10 +1,10 @@
 import { JobCard } from './JobCard';
 
-export function JobFeedList({ jobs }) {
+export function JobFeedList({ jobs, viewerRole }) {
   return (
     <div className="job-grid">
       {jobs.map((job) => (
-        <JobCard key={job.id} job={job} />
+        <JobCard key={job.id} job={job} viewerRole={viewerRole} />
       ))}
     </div>
   );

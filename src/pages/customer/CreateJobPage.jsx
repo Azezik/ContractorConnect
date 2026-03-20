@@ -7,7 +7,7 @@ export function CreateJobPage() {
 
   return (
     <PageContainer>
-      <CustomerOnboardingFlow userId={userId} userDoc={userDoc} />
+      <CustomerOnboardingFlow userId={userId} userDoc={userDoc} isInitialOnboarding={false} />
     </PageContainer>
   );
 }

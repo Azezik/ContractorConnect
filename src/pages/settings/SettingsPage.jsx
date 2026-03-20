@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { updatePassword } from 'firebase/auth';
 import { PageContainer } from '../../components/layout/PageContainer';
 import { SectionHeader } from '../../components/layout/SectionHeader';
@@ -7,9 +7,11 @@ import { Input } from '../../components/ui/Input';
 import { Button } from '../../components/ui/Button';
 import { useCurrentUser } from '../../hooks/useCurrentUser';
 import { updateUserProfile } from '../../services/userService';
+import { getAccountRole } from '../../lib/auth/accountRole';
 
 export function SettingsPage() {
   const { authUser, userDoc, userId } = useCurrentUser();
+  const accountRole = getAccountRole(userDoc);
   const [profile, setProfile] = useState({
     fullName: userDoc?.fullName || '',
     city: userDoc?.city || '',
@@ -17,6 +19,7 @@ export function SettingsPage() {
   });
   const [password, setPassword] = useState('');
   const [status, setStatus] = useState('');
+
   useEffect(() => {
     setProfile({
       fullName: userDoc?.fullName || '',
@@ -24,6 +27,12 @@ export function SettingsPage() {
       postalCode: userDoc?.postalCode || '',
     });
   }, [userDoc]);
+
+  const roleLabel = useMemo(() => {
+    if (accountRole === 'client') return 'client';
+    if (accountRole === 'contractor') return 'contractor';
+    return 'account';
+  }, [accountRole]);
 
   async function handleProfileSave(event) {
     event.preventDefault();
@@ -44,7 +53,7 @@ export function SettingsPage() {
       <SectionHeader
         eyebrow="Settings"
         title="Account management"
-        description="This is the foundation for Phase 6 profile editing, password updates, and role-specific maintenance flows."
+        description={`This shared settings screen is reached through the ${roleLabel} route bucket, so users stay inside the correct workspace while updating profile and password details.`}
       />
       <div className="two-column-layout">
         <Card>

@@ -7,7 +7,7 @@ export function CustomerOnboardingPage() {
 
   return (
     <PageContainer>
-      <CustomerOnboardingFlow userId={userId} userDoc={userDoc} />
+      <CustomerOnboardingFlow userId={userId} userDoc={userDoc} isInitialOnboarding />
     </PageContainer>
   );
 }

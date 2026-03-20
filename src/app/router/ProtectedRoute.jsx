@@ -1,4 +1,4 @@
-import { Navigate, useLocation } from 'react-router-dom';
+import { Navigate, Outlet, useLocation } from 'react-router-dom';
 import { useAuth } from '../../hooks/useAuth';
 import { AccountAccessNotice } from '../../components/account/AccountAccessNotice';
 import { Spinner } from '../../components/ui/Spinner';
@@ -20,5 +20,5 @@ export function ProtectedRoute({ children }) {
     return <AccountAccessNotice message={authIssue} />;
   }
 
-  return children;
+  return children || <Outlet />;
 }

@@ -13,9 +13,10 @@ import { useCurrentUser } from '../../hooks/useCurrentUser';
 import { createConversation } from '../../services/conversationService';
 import { sendMessage } from '../../services/messageService';
 import { createReport } from '../../services/reportService';
-import { ROUTES } from '../../constants/routes';
+import { buildContractorConversationRoute, ROUTES } from '../../constants/routes';
+import { ACCOUNT_ROLES } from '../../constants/roles';
 
-export function JobDetailsPage() {
+export function ContractorJobDetailsPage() {
   const { jobId } = useParams();
   const navigate = useNavigate();
   const { job, loading } = useJobDetails(jobId);
@@ -23,7 +24,10 @@ export function JobDetailsPage() {
   const [message, setMessage] = useState('');
   const [status, setStatus] = useState('');
 
-  const canMessage = useMemo(() => userDoc?.primaryRole === 'contractor' && job?.ownerId && job.ownerId !== userId, [job, userDoc, userId]);
+  const canMessage = useMemo(
+    () => job?.ownerId && job.ownerId !== userId,
+    [job, userId],
+  );
 
   if (loading) {
     return <Spinner label="Loading job details…" />;
@@ -46,8 +50,8 @@ export function JobDetailsPage() {
     const conversationId = await createConversation({
       participants: [userId, job.ownerId],
       participantRoles: {
-        [userId]: userDoc?.primaryRole || 'contractor',
-        [job.ownerId]: 'customer',
+        [userId]: ACCOUNT_ROLES.CONTRACTOR,
+        [job.ownerId]: ACCOUNT_ROLES.CLIENT,
       },
       relatedJobPostId: job.id,
       relatedContractorProfileId: userId,
@@ -60,7 +64,7 @@ export function JobDetailsPage() {
     });
 
     await sendMessage({ conversationId, senderId: userId, content: message.trim() });
-    navigate(`${ROUTES.INBOX}/${conversationId}`);
+    navigate(buildContractorConversationRoute(conversationId));
   }
 
   async function handleReport() {
@@ -69,7 +73,7 @@ export function JobDetailsPage() {
       targetType: 'jobPost',
       targetId: job.id,
       reason: 'Needs moderator review',
-      details: `Job ${job.title} was reported from the details page.`,
+      details: `Job ${job.title} was reported from the contractor details page.`,
     });
     setStatus('Report submitted to the moderation queue.');
   }
@@ -98,9 +102,9 @@ export function JobDetailsPage() {
           <JobMetaPanel job={job} />
           {canMessage ? (
             <Card>
-              <h3>Message this customer</h3>
+              <h3>Message this client</h3>
               <p>
-                Messaging is account-based and stays inside the platform. Customer email addresses are never exposed publicly.
+                Messaging is account-based and stays inside the contractor workspace. Client email addresses are never exposed publicly.
               </p>
               <Textarea label="Opening message" rows={5} value={message} onChange={(e) => setMessage(e.target.value)} />
               <Button onClick={handleStartConversation}>Start conversation</Button>

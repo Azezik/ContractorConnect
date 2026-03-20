@@ -1,15 +1,33 @@
-import { Navigate } from 'react-router-dom';
+import { Navigate, Outlet } from 'react-router-dom';
 import { useAuth } from '../../hooks/useAuth';
-import { hasRole } from '../../lib/guards/roleHelpers';
-import { getDefaultAuthedRoute } from '../../lib/guards/onboardingHelpers';
+import { Spinner } from '../../components/ui/Spinner';
+import { getAccountRole } from '../../lib/auth/accountRole';
+import { getDefaultAuthedRoute, getHomeRouteForRole, isOnboardingCompleteForRole } from '../../lib/guards/onboardingHelpers';
 
-export function RoleGate({ allowedRoles, children }) {
+export function RoleGate({
+  allowedRoles,
+  requireOnboarding = false,
+  redirectIfOnboardingComplete = false,
+  children,
+}) {
   const { userDoc, loading } = useAuth();
+  const accountRole = getAccountRole(userDoc);
+  const isAllowed = Boolean(accountRole && allowedRoles?.includes(accountRole));
+  const isOnboarded = isOnboardingCompleteForRole(userDoc, accountRole);
 
-  if (loading) return null;
-  if (!hasRole(userDoc, allowedRoles)) {
+  if (loading) return <Spinner label="Checking account access…" />;
+
+  if (!isAllowed) {
     return <Navigate to={getDefaultAuthedRoute(userDoc)} replace />;
   }
 
-  return children;
+  if (requireOnboarding && !isOnboarded) {
+    return <Navigate to={getDefaultAuthedRoute(userDoc)} replace />;
+  }
+
+  if (redirectIfOnboardingComplete && isOnboarded) {
+    return <Navigate to={getHomeRouteForRole(accountRole)} replace />;
+  }
+
+  return children || <Outlet />;
 }

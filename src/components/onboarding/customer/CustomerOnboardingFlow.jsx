@@ -13,6 +13,7 @@ import { createJobPost } from '../../../services/jobPostService';
 import { markOnboardingComplete } from '../../../services/userService';
 import { ROUTES } from '../../../constants/routes';
 import { useAsyncState } from '../../../hooks/useAsyncState';
+import { ACCOUNT_ROLES } from '../../../constants/roles';
 
 const STEPS = ['Intro', 'Basics', 'Details', 'Images', 'Review'];
 
@@ -29,7 +30,7 @@ const initialValues = {
   primaryImageIndex: 0,
 };
 
-export function CustomerOnboardingFlow({ userId, userDoc }) {
+export function CustomerOnboardingFlow({ userId, userDoc, isInitialOnboarding = true }) {
   const navigate = useNavigate();
   const [step, setStep] = useState(1);
   const [values, setValues] = useState({
@@ -153,9 +154,13 @@ export function CustomerOnboardingFlow({ userId, userDoc }) {
         imageFiles: values.imageFiles,
         primaryImageIndex: values.primaryImageIndex,
       });
-      await markOnboardingComplete(userId, 'customer');
+
+      if (isInitialOnboarding) {
+        await markOnboardingComplete(userId, ACCOUNT_ROLES.CLIENT);
+      }
+
       succeed();
-      navigate(ROUTES.CUSTOMER_HOME);
+      navigate(isInitialOnboarding ? ROUTES.CLIENT_HOME : ROUTES.CLIENT_JOBS, { replace: true });
     } catch (submitError) {
       fail(submitError.message || 'Unable to publish your job right now.');
     }
@@ -163,9 +168,9 @@ export function CustomerOnboardingFlow({ userId, userDoc }) {
 
   return (
     <MultiStepShell
-      eyebrow="Customer onboarding"
-      title="Post your first project"
-      description="Set up your account and publish a real job post tonight."
+      eyebrow={isInitialOnboarding ? 'Client onboarding' : 'Post a new job'}
+      title={isInitialOnboarding ? 'Post your first project' : 'Create another client job post'}
+      description={isInitialOnboarding ? 'Set up your client account and publish a real job post tonight.' : 'Stay in the client workspace while creating a new project for contractors to review.'}
       progress={<StepProgress steps={STEPS} currentStep={step} />}
       footer={
         <div className="step-actions">

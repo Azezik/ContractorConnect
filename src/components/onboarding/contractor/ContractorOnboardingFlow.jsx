@@ -14,6 +14,7 @@ import { upsertContractorProfile } from '../../../services/contractorProfileServ
 import { markOnboardingComplete } from '../../../services/userService';
 import { ROUTES } from '../../../constants/routes';
 import { useAsyncState } from '../../../hooks/useAsyncState';
+import { ACCOUNT_ROLES } from '../../../constants/roles';
 
 const STEPS = ['Intro', 'Business', 'Area', 'Services', 'Contact', 'Review'];
 
@@ -93,9 +94,9 @@ export function ContractorOnboardingFlow({ userId, userDoc }) {
     try {
       start();
       await upsertContractorProfile({ ownerId: userId, values, imageFiles: values.imageFiles });
-      await markOnboardingComplete(userId, 'contractor');
+      await markOnboardingComplete(userId, ACCOUNT_ROLES.CONTRACTOR);
       succeed();
-      navigate(ROUTES.FEED);
+      navigate(ROUTES.CONTRACTOR_FEED, { replace: true });
     } catch (submitError) {
       fail(submitError.message || 'Unable to create your contractor profile right now.');
     }

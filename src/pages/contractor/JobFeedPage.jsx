@@ -12,6 +12,7 @@ import { Select } from '../../components/ui/Select';
 import { CATEGORY_OPTIONS } from '../../constants/categories';
 import { EmptyState } from '../../components/ui/EmptyState';
 import { buildContractorJobFeed } from '../../lib/matching/matchingModel';
+import { ACCOUNT_ROLES } from '../../constants/roles';
 
 export function JobFeedPage() {
   const { authUser } = useAuth();
@@ -43,7 +44,7 @@ export function JobFeedPage() {
         <SectionHeader
           eyebrow="Contractor feed"
           title="Matched jobs"
-          description="We keep this feed aligned to your contractor profile, and it should always resolve to jobs, zero matches, or a clear fallback."
+          description="This contractor-only feed stays tied to contractor profile matching data and never doubles as a client dashboard."
         />
         <EmptyState
           title="We couldn’t load matches right now"
@@ -75,7 +76,7 @@ export function JobFeedPage() {
         <Input label="Tag" value={filters.tag} onChange={(e) => setFilters((current) => ({ ...current, tag: e.target.value }))} />
       </div>
       {filteredJobs.length ? (
-        <JobFeedList jobs={filteredJobs} />
+        <JobFeedList jobs={filteredJobs} viewerRole={ACCOUNT_ROLES.CONTRACTOR} />
       ) : (
         <EmptyJobState
           hasFilters={hasFilters}
