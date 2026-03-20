@@ -64,16 +64,76 @@ export function SignupPage() {
     >
       <form className="form-stack" onSubmit={handleSubmit}>
         <div className="form-grid">
-          <Input label="Full name" value={values.fullName} error={errors.fullName} onChange={(e) => handleChange('fullName', e.target.value)} />
-          <Input label="Username" value={values.username} error={errors.username} onChange={(e) => handleChange('username', e.target.value)} />
+          <Input
+            id="signup-full-name"
+            label="Full name"
+            name="fullName"
+            autoComplete="name"
+            value={values.fullName}
+            error={errors.fullName}
+            onChange={(e) => handleChange('fullName', e.target.value)}
+          />
+          <Input
+            id="signup-username"
+            label="Username"
+            name="username"
+            placeholder="Choose a public username"
+            autoComplete="nickname"
+            autoCapitalize="none"
+            autoCorrect="off"
+            spellCheck={false}
+            value={values.username}
+            error={errors.username}
+            onChange={(e) => handleChange('username', e.target.value)}
+          />
         </div>
         <div className="form-grid">
-          <Input label="Email" type="email" value={values.email} error={errors.email} onChange={(e) => handleChange('email', e.target.value)} />
-          <Input label="Password" type="password" value={values.password} error={errors.password} onChange={(e) => handleChange('password', e.target.value)} />
+          <Input
+            id="signup-email"
+            label="Email address"
+            type="email"
+            name="email"
+            placeholder="you@example.com"
+            autoComplete="username"
+            autoCapitalize="none"
+            autoCorrect="off"
+            spellCheck={false}
+            inputMode="email"
+            value={values.email}
+            error={errors.email}
+            onChange={(e) => handleChange('email', e.target.value)}
+          />
+          <Input
+            id="signup-password"
+            label="Password"
+            type="password"
+            name="password"
+            autoComplete="new-password"
+            value={values.password}
+            error={errors.password}
+            onChange={(e) => handleChange('password', e.target.value)}
+          />
         </div>
         <div className="form-grid">
-          <Input label="City" value={values.city} error={errors.city} onChange={(e) => handleChange('city', e.target.value)} />
-          <Input label="Postal code" value={values.postalCode} error={errors.postalCode} onChange={(e) => handleChange('postalCode', e.target.value)} />
+          <Input
+            id="signup-city"
+            label="City"
+            name="city"
+            autoComplete="address-level2"
+            value={values.city}
+            error={errors.city}
+            onChange={(e) => handleChange('city', e.target.value)}
+          />
+          <Input
+            id="signup-postal-code"
+            label="Postal code"
+            name="postalCode"
+            autoComplete="postal-code"
+            inputMode="numeric"
+            value={values.postalCode}
+            error={errors.postalCode}
+            onChange={(e) => handleChange('postalCode', e.target.value)}
+          />
         </div>
         {formError ? <p className="form-error-banner">{formError}</p> : null}
         <Button type="submit" disabled={submitting}>{submitting ? 'Creating account…' : 'Create account'}</Button>
