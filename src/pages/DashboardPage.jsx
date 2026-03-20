@@ -6,7 +6,7 @@ import { getDefaultAuthedRoute } from '../lib/guards/onboardingHelpers';
 export function DashboardPage() {
   const { userDoc, loading } = useAuth();
 
-  if (loading) return <Spinner label="Preparing your dashboard…" />;
+  if (loading) return <Spinner label="Preparing your workspace…" />;
 
   return <Navigate to={getDefaultAuthedRoute(userDoc)} replace />;
 }

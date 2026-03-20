@@ -8,6 +8,7 @@ import { ROUTES } from '../../constants/routes';
 import { useCurrentUser } from '../../hooks/useCurrentUser';
 import { getUserJobPosts } from '../../services/jobPostService';
 import { JobFeedList } from '../../components/jobs/JobFeedList';
+import { ACCOUNT_ROLES } from '../../constants/roles';
 
 export function CustomerHomePage() {
   const { userId, userDoc } = useCurrentUser();
@@ -21,21 +22,21 @@ export function CustomerHomePage() {
   return (
     <PageContainer>
       <SectionHeader
-        eyebrow="Customer home"
+        eyebrow="Client dashboard"
         title={`Welcome back, ${userDoc?.fullName?.split(' ')[0] || 'there'}`}
-        description="Your first job is live. You can continue creating posts, review replies in your inbox, and manage account details from settings."
+        description="Your client workspace keeps job posting and job management separate from contractor tools. Review your posts, create another request, and continue contractor conversations from here."
         action={
-          <Link to={ROUTES.JOBS_NEW}>
-            <Button>Create another job</Button>
+          <Link to={ROUTES.CLIENT_JOBS_NEW}>
+            <Button>Post a new job</Button>
           </Link>
         }
       />
       <div className="stats-grid">
         <Card><strong>{jobs.length}</strong><span>Total job posts</span></Card>
         <Card><strong>{jobs.filter((job) => job.status === 'active').length}</strong><span>Active jobs</span></Card>
-        <Card><strong>Messaging ready</strong><span>Contractors can reach out from job details.</span></Card>
+        <Card><strong>{ACCOUNT_ROLES.CLIENT}</strong><span>This account is locked to the client experience.</span></Card>
       </div>
-      {jobs.length ? <JobFeedList jobs={jobs} /> : null}
+      {jobs.length ? <JobFeedList jobs={jobs} viewerRole={ACCOUNT_ROLES.CLIENT} /> : null}
     </PageContainer>
   );
 }

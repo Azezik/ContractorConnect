@@ -8,6 +8,7 @@ import { JobFeedList } from '../../components/jobs/JobFeedList';
 import { EmptyJobState } from '../../components/jobs/EmptyJobState';
 import { ROUTES } from '../../constants/routes';
 import { Button } from '../../components/ui/Button';
+import { ACCOUNT_ROLES } from '../../constants/roles';
 
 export function MyJobPostsPage() {
   const { userId } = useCurrentUser();
@@ -21,12 +22,12 @@ export function MyJobPostsPage() {
   return (
     <PageContainer>
       <SectionHeader
-        eyebrow="Your jobs"
+        eyebrow="Client jobs"
         title="Manage your job posts"
-        description="This is the foundation for later Phase 6 tools like editing, closing, archiving, and reopening posts."
-        action={<Link to={ROUTES.JOBS_NEW}><Button>Create another job</Button></Link>}
+        description="This client-only area is for reviewing, reopening, and extending the projects your account has posted."
+        action={<Link to={ROUTES.CLIENT_JOBS_NEW}><Button>Create another job</Button></Link>}
       />
-      {jobs.length ? <JobFeedList jobs={jobs} /> : <EmptyJobState />}
+      {jobs.length ? <JobFeedList jobs={jobs} viewerRole={ACCOUNT_ROLES.CLIENT} /> : <EmptyJobState />}
     </PageContainer>
   );
 }

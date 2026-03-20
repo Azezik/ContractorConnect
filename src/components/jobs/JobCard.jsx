@@ -4,8 +4,9 @@ import { Badge } from '../ui/Badge';
 import { truncateText } from '../../lib/formatters/text';
 import { formatDate } from '../../lib/formatters/dates';
 import { formatLocation } from '../../lib/formatters/location';
+import { getJobDetailsRouteForRole } from '../../lib/guards/onboardingHelpers';
 
-export function JobCard({ job }) {
+export function JobCard({ job, viewerRole }) {
   const sharedTerms = [
     ...(job.match?.highlights?.serviceOverlap || []),
     ...(job.match?.highlights?.tagOverlap || []),
@@ -32,7 +33,7 @@ export function JobCard({ job }) {
       </div>
       <div className="job-card__footer">
         <span>{formatLocation(job.city, job.postalCode)}</span>
-        <Link to={`/jobs/${job.id}`}>View details →</Link>
+        <Link to={getJobDetailsRouteForRole(viewerRole, job.id)}>View details →</Link>
       </div>
     </Card>
   );

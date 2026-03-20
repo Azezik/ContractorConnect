@@ -1,7 +1,5 @@
+import { Navigate, useParams } from 'react-router-dom';
 import { useEffect, useState } from 'react';
-import { useParams } from 'react-router-dom';
-import { doc, getDoc } from 'firebase/firestore';
-import { db } from '../../firebase/firebase';
 import { PageContainer } from '../../components/layout/PageContainer';
 import { Card } from '../../components/ui/Card';
 import { Textarea } from '../../components/ui/Textarea';
@@ -10,25 +8,58 @@ import { useCurrentUser } from '../../hooks/useCurrentUser';
 import { subscribeToMessages, sendMessage } from '../../services/messageService';
 import { formatDate } from '../../lib/formatters/dates';
 import { createReport } from '../../services/reportService';
+import { getConversation } from '../../services/conversationService';
+import { getAccountRole } from '../../lib/auth/accountRole';
+import { getHomeRouteForRole } from '../../lib/guards/onboardingHelpers';
 
 export function ConversationPage() {
   const { conversationId } = useParams();
-  const { userId } = useCurrentUser();
-  const [conversation, setConversation] = useState(null);
+  const { userId, userDoc } = useCurrentUser();
+  const [conversation, setConversation] = useState(undefined);
   const [messages, setMessages] = useState([]);
   const [content, setContent] = useState('');
   const [reportStatus, setReportStatus] = useState('');
+  const accountRole = getAccountRole(userDoc);
 
   useEffect(() => {
-    getDoc(doc(db, 'conversations', conversationId)).then((snapshot) => {
-      setConversation(snapshot.exists() ? { id: snapshot.id, ...snapshot.data() } : null);
-    });
+    let active = true;
+
+    async function loadConversation() {
+      const nextConversation = await getConversation(conversationId);
+      if (active) {
+        setConversation(nextConversation);
+      }
+    }
+
+    if (conversationId) {
+      loadConversation();
+    }
+
+    return () => {
+      active = false;
+    };
   }, [conversationId]);
 
   useEffect(() => {
     if (!conversationId) return undefined;
     return subscribeToMessages(conversationId, setMessages);
   }, [conversationId]);
+
+  if (conversation === undefined) {
+    return (
+      <PageContainer>
+        <Card>
+          <h1>Loading conversation…</h1>
+        </Card>
+      </PageContainer>
+    );
+  }
+
+  const isParticipant = Boolean(conversation?.participants?.includes(userId));
+
+  if (!conversation || !isParticipant) {
+    return <Navigate to={getHomeRouteForRole(accountRole)} replace />;
+  }
 
   async function handleSend(event) {
     event.preventDefault();

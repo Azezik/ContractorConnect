@@ -2,6 +2,7 @@ import {
   addDoc,
   collection,
   doc,
+  getDoc,
   getDocs,
   onSnapshot,
   orderBy,
@@ -52,6 +53,11 @@ export async function createConversation(payload) {
   });
 
   return docRef.id;
+}
+
+export async function getConversation(conversationId) {
+  const snapshot = await getDoc(doc(db, 'conversations', conversationId));
+  return snapshot.exists() ? { id: snapshot.id, ...snapshot.data() } : null;
 }
 
 export function subscribeToUserConversations(userId, callback) {
