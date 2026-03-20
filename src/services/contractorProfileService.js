@@ -1,7 +1,8 @@
 import { doc, getDoc, onSnapshot, serverTimestamp, setDoc } from 'firebase/firestore';
 import { db } from '../firebase/firebase';
 import { MODERATION_STATUS } from '../constants/moderationStatus';
-import { uploadFiles } from './storageService';
+import { buildContractorProfileStoragePath } from './storagePaths';
+import { STORAGE_UPLOAD_POLICIES, uploadFiles } from './storageService';
 
 export async function upsertContractorProfile({ ownerId, values, imageFiles = [] }) {
   const profileRef = doc(db, 'contractorProfiles', ownerId);
@@ -10,7 +11,8 @@ export async function upsertContractorProfile({ ownerId, values, imageFiles = []
   if (imageFiles.length) {
     uploads = await uploadFiles({
       files: imageFiles,
-      pathPrefix: `users/${ownerId}/contractorProfile`,
+      pathPrefix: buildContractorProfileStoragePath(ownerId),
+      policy: STORAGE_UPLOAD_POLICIES.publicImage,
     });
   }
 
