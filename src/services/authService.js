@@ -1,19 +1,20 @@
 import { createUserWithEmailAndPassword, deleteUser, signInWithEmailAndPassword, signOut, updateProfile } from 'firebase/auth';
 import { auth } from '../firebase/firebase';
 import { FIRESTORE_PROFILE_PERMISSION_MESSAGE, isFirestorePermissionError } from '../lib/firebase/firebaseErrorUtils';
-import { createUserDocument } from './userService';
+import { ensureUserDocument } from './userService';
 
 export async function signupWithEmail({ fullName, username, email, password, city, postalCode }) {
   const credential = await createUserWithEmailAndPassword(auth, email, password);
 
   try {
     await updateProfile(credential.user, { displayName: fullName });
-    await createUserDocument(credential.user.uid, {
+    await ensureUserDocument(credential.user, {
       fullName,
       username,
       email,
       city,
       postalCode,
+      authProvider: 'password',
     });
     return credential.user;
   } catch (error) {
