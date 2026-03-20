@@ -1,18 +1,31 @@
-import { createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, updateProfile } from 'firebase/auth';
+import { createUserWithEmailAndPassword, deleteUser, signInWithEmailAndPassword, signOut, updateProfile } from 'firebase/auth';
 import { auth } from '../firebase/firebase';
-import { createUserDocument } from './userService';
+import { FIRESTORE_PROFILE_PERMISSION_MESSAGE, isFirestorePermissionError } from '../lib/firebase/firebaseErrorUtils';
+import { ensureUserDocument } from './userService';
 
 export async function signupWithEmail({ fullName, username, email, password, city, postalCode }) {
   const credential = await createUserWithEmailAndPassword(auth, email, password);
-  await updateProfile(credential.user, { displayName: fullName });
-  await createUserDocument(credential.user.uid, {
-    fullName,
-    username,
-    email,
-    city,
-    postalCode,
-  });
-  return credential.user;
+
+  try {
+    await updateProfile(credential.user, { displayName: fullName });
+    await ensureUserDocument(credential.user, {
+      fullName,
+      username,
+      email,
+      city,
+      postalCode,
+      authProvider: 'password',
+    });
+    return credential.user;
+  } catch (error) {
+    await deleteUser(credential.user).catch(() => signOut(auth));
+
+    if (isFirestorePermissionError(error)) {
+      throw new Error(FIRESTORE_PROFILE_PERMISSION_MESSAGE);
+    }
+
+    throw error;
+  }
 }
 
 export async function loginWithEmail({ email, password }) {

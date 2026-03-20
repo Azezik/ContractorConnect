@@ -1,30 +1,70 @@
 import { doc, getDoc, onSnapshot, serverTimestamp, setDoc, updateDoc } from 'firebase/firestore';
 import { db } from '../firebase/firebase';
 
+const DEFAULT_USER_DOCUMENT = {
+  fullName: '',
+  username: '',
+  email: '',
+  city: '',
+  postalCode: '',
+  roles: [],
+  primaryRole: null,
+  onboardingComplete: false,
+  onboardingState: {
+    customerComplete: false,
+    contractorComplete: false,
+  },
+  accountStatus: 'active',
+  authProvider: 'password',
+};
+
 export function getUserRef(userId) {
   return doc(db, 'users', userId);
 }
 
-export async function createUserDocument(userId, profile) {
-  const userRef = getUserRef(userId);
-  await setDoc(userRef, {
-    fullName: profile.fullName,
-    username: profile.username,
-    email: profile.email,
-    city: profile.city,
-    postalCode: profile.postalCode,
-    roles: [],
-    primaryRole: null,
-    onboardingComplete: false,
+function omitUndefinedEntries(value) {
+  return Object.fromEntries(Object.entries(value).filter(([, entry]) => entry !== undefined));
+}
+
+function buildUserDocument(profile = {}) {
+  const normalizedProfile = omitUndefinedEntries(profile);
+
+  return {
+    ...DEFAULT_USER_DOCUMENT,
+    ...normalizedProfile,
     onboardingState: {
-      customerComplete: false,
-      contractorComplete: false,
+      ...DEFAULT_USER_DOCUMENT.onboardingState,
+      ...(normalizedProfile.onboardingState || {}),
     },
-    accountStatus: 'active',
-    authProvider: 'password',
     createdAt: serverTimestamp(),
     updatedAt: serverTimestamp(),
-  }, { merge: true });
+  };
+}
+
+export async function createUserDocument(userId, profile) {
+  const userRef = getUserRef(userId);
+  await setDoc(userRef, buildUserDocument(profile), { merge: true });
+}
+
+export async function ensureUserDocument(user, profile = {}) {
+  if (!user?.uid) {
+    throw new Error('Cannot create a user document without an authenticated user.');
+  }
+
+  const email = profile.email ?? user.email ?? '';
+  await createUserDocument(user.uid, {
+    fullName: profile.fullName ?? user.displayName ?? '',
+    username: profile.username ?? email.split('@')[0] ?? '',
+    email,
+    city: profile.city ?? '',
+    postalCode: profile.postalCode ?? '',
+    authProvider: profile.authProvider ?? user.providerData?.[0]?.providerId ?? 'password',
+    roles: profile.roles,
+    primaryRole: profile.primaryRole,
+    onboardingComplete: profile.onboardingComplete,
+    onboardingState: profile.onboardingState,
+    accountStatus: profile.accountStatus,
+  });
 }
 
 export async function getUserDocument(userId) {
@@ -32,19 +72,23 @@ export async function getUserDocument(userId) {
   return snapshot.exists() ? { id: snapshot.id, ...snapshot.data() } : null;
 }
 
-export function subscribeToUserDocument(userId, callback) {
-  return onSnapshot(getUserRef(userId), (snapshot) => {
-    callback(snapshot.exists() ? { id: snapshot.id, ...snapshot.data() } : null);
-  });
+export function subscribeToUserDocument(userId, callback, onError) {
+  return onSnapshot(
+    getUserRef(userId),
+    (snapshot) => {
+      callback(snapshot.exists() ? { id: snapshot.id, ...snapshot.data() } : null);
+    },
+    onError,
+  );
 }
 
 export async function updateUserRole(userId, role) {
   const userRef = getUserRef(userId);
-  await updateDoc(userRef, {
+  await setDoc(userRef, {
     roles: [role],
     primaryRole: role,
     updatedAt: serverTimestamp(),
-  });
+  }, { merge: true });
 }
 
 export async function markOnboardingComplete(userId, role) {

@@ -28,7 +28,7 @@ export function ContractorProfilePage() {
       <PageContainer>
         <Card>
           <h1>Your profile is still being prepared</h1>
-          <p>Complete contractor onboarding first or reload once Firestore has finished syncing.</p>
+          <p>Complete contractor onboarding first, then refresh this page if your profile is not visible yet.</p>
         </Card>
       </PageContainer>
     );
@@ -74,7 +74,7 @@ export function ContractorProfilePage() {
           <Card>
             <h3>Reviews and trust</h3>
             <p>
-              This first pass supports real review documents. Later phases can tighten verification rules tied to completed job states.
+              Customer feedback appears here so future clients can quickly understand the quality of your work and communication.
             </p>
             {reviews.length ? (
               <div className="review-list">
