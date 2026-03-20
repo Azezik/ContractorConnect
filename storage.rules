@@ -1,0 +1,66 @@
+rules_version = '2';
+service firebase.storage {
+  match /b/{bucket}/o {
+    function signedIn() {
+      return request.auth != null;
+    }
+
+    function isOwner(userId) {
+      return signedIn() && request.auth.uid == userId;
+    }
+
+    function isImageUpload() {
+      return request.resource != null
+        && request.resource.contentType.matches('image/.*');
+    }
+
+    function hasFileSizeUnder(maxBytes) {
+      return request.resource != null
+        && request.resource.size <= maxBytes;
+    }
+
+    function isReadableImage() {
+      return resource != null
+        && resource.contentType.matches('image/.*');
+    }
+
+    match /users/{userId}/avatar/{fileName} {
+      allow read: if isReadableImage();
+      allow write: if isOwner(userId)
+        && isImageUpload()
+        && hasFileSizeUnder(5 * 1024 * 1024);
+    }
+
+    match /users/{userId}/jobPosts/{jobPostId}/{fileName} {
+      allow read: if isReadableImage();
+      allow write: if isOwner(userId)
+        && isImageUpload()
+        && hasFileSizeUnder(5 * 1024 * 1024);
+    }
+
+    match /users/{userId}/contractorProfile/{fileName} {
+      allow read: if isReadableImage();
+      allow write: if isOwner(userId)
+        && isImageUpload()
+        && hasFileSizeUnder(5 * 1024 * 1024);
+    }
+
+    match /users/{userId}/reports/{reportId}/{fileName} {
+      allow read: if isOwner(userId);
+      allow write: if isOwner(userId)
+        && isImageUpload()
+        && hasFileSizeUnder(10 * 1024 * 1024);
+    }
+
+    match /users/{userId}/messages/{conversationId}/{fileName} {
+      allow read: if isOwner(userId);
+      allow write: if isOwner(userId)
+        && isImageUpload()
+        && hasFileSizeUnder(10 * 1024 * 1024);
+    }
+
+    match /{allPaths=**} {
+      allow read, write: if false;
+    }
+  }
+}

@@ -15,7 +15,8 @@ import {
 import { db } from '../firebase/firebase';
 import { JOB_STATUS } from '../constants/jobStatus';
 import { MODERATION_STATUS } from '../constants/moderationStatus';
-import { uploadFiles } from './storageService';
+import { buildJobPostStoragePath } from './storagePaths';
+import { STORAGE_UPLOAD_POLICIES, uploadFiles } from './storageService';
 
 const jobPostsCollection = collection(db, 'jobPosts');
 
@@ -43,7 +44,8 @@ export async function createJobPost({ ownerId, ownerSnapshot, values, imageFiles
   if (imageFiles.length) {
     const uploads = await uploadFiles({
       files: imageFiles,
-      pathPrefix: `users/${ownerId}/jobPosts/${docRef.id}`,
+      pathPrefix: buildJobPostStoragePath(ownerId, docRef.id),
+      policy: STORAGE_UPLOAD_POLICIES.publicImage,
     });
     const primaryImage = uploads[primaryImageIndex] || uploads[0] || null;
 

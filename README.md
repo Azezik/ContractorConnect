@@ -16,8 +16,10 @@ The Firebase web config is initialized once in `src/firebase/firebase.js`.
 
 This app expects each signed-in user to be able to read and write their own `users/{uid}` document during signup and login bootstrap.
 
-A starter ruleset is included in `firestore.rules`. After updating it for your production needs, deploy it with Firebase:
+Starter rulesets are included in `firestore.rules` and `storage.rules`. After updating them for your production needs, deploy them with Firebase:
 
 ```bash
-firebase deploy --only firestore:rules
+firebase deploy --only firestore:rules,storage
 ```
+
+The Storage rules expect account-scoped file ownership under paths like `users/{uid}/jobPosts/{jobPostId}/...` and `users/{uid}/contractorProfile/...`.
