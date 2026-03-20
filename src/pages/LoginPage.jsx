@@ -56,10 +56,12 @@ export function LoginPage() {
     >
       <form className="form-stack" onSubmit={handleSubmit}>
         <Input
-          label="Email"
+          id="login-email"
+          label="Email address"
           type="email"
           name="email"
-          autoComplete="off"
+          placeholder="you@example.com"
+          autoComplete="username"
           autoCapitalize="none"
           autoCorrect="off"
           spellCheck={false}
@@ -69,6 +71,7 @@ export function LoginPage() {
           onChange={(e) => handleChange('email', e.target.value)}
         />
         <Input
+          id="login-password"
           label="Password"
           type="password"
           name="password"
