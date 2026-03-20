@@ -17,7 +17,7 @@ export function ContractorHomePage() {
       <div className="stats-grid">
         <Card><strong>Browse local demand</strong><span>Use tags, city, and category filters in the feed.</span></Card>
         <Card><strong>Message inside the app</strong><span>Start conversations without exposing your email.</span></Card>
-        <Card><strong>Trust architecture ready</strong><span>Reviews, reports, and moderation collections are already in place.</span></Card>
+        <Card><strong>Build credibility</strong><span>Profiles, reviews, and reporting tools help customers feel confident contacting you.</span></Card>
       </div>
     </PageContainer>
   );

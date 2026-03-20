@@ -29,8 +29,8 @@ export function HeroSection() {
           <span>Contractors can find active jobs, filter by category, and message directly inside the app.</span>
         </div>
         <div className="hero-stat">
-          <strong>Moderated trust layer</strong>
-          <span>Profiles, reviews, reports, and platform moderation are built into the architecture from day one.</span>
+          <strong>Built for trust</strong>
+          <span>Profiles, reviews, reporting, and moderation help customers and contractors feel more confident.</span>
         </div>
       </div>
     </section>

@@ -389,3 +389,28 @@ input[type='file'] {
     flex-direction: column;
   }
 }
+
+.feature-list {
+  margin: 0;
+  padding-left: 1.25rem;
+  display: grid;
+  gap: 0.75rem;
+  color: var(--muted);
+}
+
+.account-access-notice {
+  max-width: 720px;
+  margin: 3rem auto 0;
+}
+
+.account-access-notice p code {
+  background: #eef5ee;
+  border-radius: 8px;
+  padding: 0.15rem 0.4rem;
+}
+
+.account-access-notice__actions {
+  margin-top: 1.25rem;
+  display: flex;
+  gap: 0.75rem;
+}

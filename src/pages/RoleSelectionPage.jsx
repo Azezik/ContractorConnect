@@ -1,9 +1,9 @@
 import { useNavigate } from 'react-router-dom';
 import { PageContainer } from '../components/layout/PageContainer';
 import { RoleSelectionCard } from '../components/auth/RoleSelectionCard';
-import { updateUserRole } from '../services/userService';
-import { useCurrentUser } from '../hooks/useCurrentUser';
 import { ROUTES } from '../constants/routes';
+import { useCurrentUser } from '../hooks/useCurrentUser';
+import { updateUserRole } from '../services/userService';
 
 export function RoleSelectionPage() {
   const navigate = useNavigate();
@@ -20,7 +20,7 @@ export function RoleSelectionPage() {
         <span className="eyebrow">Choose your path</span>
         <h1>How do you want to use Contractor Connect?</h1>
         <p>
-          Public-facing copy keeps the wording friendly, while the account model stores roles in a future-safe way for later expansion.
+          Pick the experience that matches what you want to do today. You can finish setup in a few steps and start using the platform right away.
         </p>
       </section>
       <div className="role-chooser">
