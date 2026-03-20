@@ -3,9 +3,10 @@ import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { AuthShell } from '../components/auth/AuthShell';
 import { Input } from '../components/ui/Input';
 import { Button } from '../components/ui/Button';
+import { ROUTES } from '../constants/routes';
+import { toUserFacingErrorMessage } from '../lib/firebase/firebaseErrorUtils';
 import { validateLogin } from '../lib/validation/authValidation';
 import { loginWithEmail } from '../services/authService';
-import { ROUTES } from '../constants/routes';
 
 export function LoginPage() {
   const navigate = useNavigate();
@@ -31,7 +32,7 @@ export function LoginPage() {
       await loginWithEmail(values);
       navigate(location.state?.from || ROUTES.DASHBOARD);
     } catch (error) {
-      setFormError(error.message || 'Login failed.');
+      setFormError(toUserFacingErrorMessage(error, 'Login failed.'));
     } finally {
       setSubmitting(false);
     }

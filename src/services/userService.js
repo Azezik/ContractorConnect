@@ -32,10 +32,14 @@ export async function getUserDocument(userId) {
   return snapshot.exists() ? { id: snapshot.id, ...snapshot.data() } : null;
 }
 
-export function subscribeToUserDocument(userId, callback) {
-  return onSnapshot(getUserRef(userId), (snapshot) => {
-    callback(snapshot.exists() ? { id: snapshot.id, ...snapshot.data() } : null);
-  });
+export function subscribeToUserDocument(userId, callback, onError) {
+  return onSnapshot(
+    getUserRef(userId),
+    (snapshot) => {
+      callback(snapshot.exists() ? { id: snapshot.id, ...snapshot.data() } : null);
+    },
+    onError,
+  );
 }
 
 export async function updateUserRole(userId, role) {

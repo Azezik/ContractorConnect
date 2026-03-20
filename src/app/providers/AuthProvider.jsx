@@ -1,6 +1,7 @@
 import { createContext, useEffect, useMemo, useState } from 'react';
 import { onAuthStateChanged } from 'firebase/auth';
 import { auth } from '../../firebase/firebase';
+import { FIRESTORE_PROFILE_PERMISSION_MESSAGE, isFirestorePermissionError } from '../../lib/firebase/firebaseErrorUtils';
 import { subscribeToUserDocument } from '../../services/userService';
 
 export const AuthContext = createContext(null);
@@ -8,6 +9,7 @@ export const AuthContext = createContext(null);
 export function AuthProvider({ children }) {
   const [authUser, setAuthUser] = useState(null);
   const [userDoc, setUserDoc] = useState(null);
+  const [authIssue, setAuthIssue] = useState('');
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -15,6 +17,7 @@ export function AuthProvider({ children }) {
 
     const unsubscribeAuth = onAuthStateChanged(auth, (user) => {
       setAuthUser(user);
+      setAuthIssue('');
 
       if (!user) {
         unsubscribeUser();
@@ -23,10 +26,24 @@ export function AuthProvider({ children }) {
         return;
       }
 
-      unsubscribeUser = subscribeToUserDocument(user.uid, (docData) => {
-        setUserDoc(docData);
-        setLoading(false);
-      });
+      setLoading(true);
+      unsubscribeUser = subscribeToUserDocument(
+        user.uid,
+        (docData) => {
+          setUserDoc(docData);
+          setAuthIssue('');
+          setLoading(false);
+        },
+        (error) => {
+          setUserDoc(null);
+          setAuthIssue(
+            isFirestorePermissionError(error)
+              ? FIRESTORE_PROFILE_PERMISSION_MESSAGE
+              : 'We signed you in, but your account profile could not be loaded right now.',
+          );
+          setLoading(false);
+        },
+      );
     });
 
     return () => {
@@ -35,7 +52,7 @@ export function AuthProvider({ children }) {
     };
   }, []);
 
-  const value = useMemo(() => ({ authUser, userDoc, loading }), [authUser, userDoc, loading]);
+  const value = useMemo(() => ({ authUser, userDoc, authIssue, loading }), [authIssue, authUser, userDoc, loading]);
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 }

@@ -3,9 +3,10 @@ import { Link, useNavigate } from 'react-router-dom';
 import { AuthShell } from '../components/auth/AuthShell';
 import { Input } from '../components/ui/Input';
 import { Button } from '../components/ui/Button';
-import { validateSignup } from '../lib/validation/authValidation';
-import { signupWithEmail } from '../services/authService';
 import { ROUTES } from '../constants/routes';
+import { validateSignup } from '../lib/validation/authValidation';
+import { toUserFacingErrorMessage } from '../lib/firebase/firebaseErrorUtils';
+import { signupWithEmail } from '../services/authService';
 
 const initialValues = {
   fullName: '',
@@ -39,7 +40,7 @@ export function SignupPage() {
       await signupWithEmail(values);
       navigate(ROUTES.ROLE_SELECT);
     } catch (error) {
-      setFormError(error.message || 'Unable to create your account.');
+      setFormError(toUserFacingErrorMessage(error, 'Unable to create your account.'));
     } finally {
       setSubmitting(false);
     }
@@ -48,15 +49,15 @@ export function SignupPage() {
   return (
     <AuthShell
       title="Create your account"
-      description="Everything on Contractor Connect is account-based. Create a real profile first, then choose whether you need work done or you're a contractor."
+      description="Set up your profile so you can post projects, find local contractors, and keep every conversation in one place."
       aside={
         <>
-          <h3>Beta-ready architecture</h3>
+          <h3>What happens next</h3>
           <ul className="feature-list">
-            <li>Firebase Auth with email/password</li>
-            <li>Firestore user document creation on signup</li>
-            <li>Role-based onboarding for customers and contractors</li>
-            <li>Future-ready support for messaging, reviews, reports, and settings</li>
+            <li>Create your secure account</li>
+            <li>Choose whether you need help or offer services</li>
+            <li>Finish a short setup flow tailored to your role</li>
+            <li>Start posting jobs or browsing opportunities nearby</li>
           </ul>
         </>
       }
