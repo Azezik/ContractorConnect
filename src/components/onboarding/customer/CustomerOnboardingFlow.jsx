@@ -6,7 +6,7 @@ import { StepProgress } from '../StepProgress';
 import { CustomerIntroStep } from './CustomerIntroStep';
 import { JobBasicsStep } from './JobBasicsStep';
 import { JobDetailsStep } from './JobDetailsStep';
-import { JobTagsStep } from './JobTagsStep';
+import { JobImagesStep } from './JobImagesStep';
 import { JobReviewStep } from './JobReviewStep';
 import { validateCustomerOnboarding } from '../../../lib/validation/onboardingValidation';
 import { createJobPost } from '../../../services/jobPostService';
@@ -14,7 +14,7 @@ import { markOnboardingComplete } from '../../../services/userService';
 import { ROUTES } from '../../../constants/routes';
 import { useAsyncState } from '../../../hooks/useAsyncState';
 
-const STEPS = ['Intro', 'Basics', 'Details', 'Tags', 'Review'];
+const STEPS = ['Intro', 'Basics', 'Details', 'Images', 'Review'];
 
 const initialValues = {
   title: '',
@@ -26,6 +26,7 @@ const initialValues = {
   budget: '',
   timeline: '',
   imageFiles: [],
+  primaryImageIndex: 0,
 };
 
 export function CustomerOnboardingFlow({ userId, userDoc }) {
@@ -38,6 +39,7 @@ export function CustomerOnboardingFlow({ userId, userDoc }) {
   });
   const [errors, setErrors] = useState({});
   const { loading, error, start, fail, succeed } = useAsyncState();
+
   useEffect(() => {
     setValues((current) => ({
       ...current,
@@ -55,14 +57,71 @@ export function CustomerOnboardingFlow({ userId, userDoc }) {
       case 3:
         return <JobDetailsStep values={values} errors={errors} onChange={handleChange} />;
       case 4:
-        return <JobTagsStep values={values} errors={errors} onChange={handleChange} />;
+        return (
+          <JobImagesStep
+            values={values}
+            errors={errors}
+            onAddImages={handleAddImages}
+            onRemoveImage={handleRemoveImage}
+          />
+        );
       default:
-        return <JobReviewStep values={values} />;
+        return (
+          <JobReviewStep
+            values={values}
+            errors={errors}
+            onAddImages={handleAddImages}
+            onRemoveImage={handleRemoveImage}
+            onSelectPrimaryImage={handleSelectPrimaryImage}
+          />
+        );
     }
   }, [step, values, errors]);
 
   function handleChange(field, nextValue) {
     setValues((current) => ({ ...current, [field]: nextValue }));
+    setErrors((current) => {
+      if (!current[field]) return current;
+      const nextErrors = { ...current };
+      delete nextErrors[field];
+      return nextErrors;
+    });
+  }
+
+  function handleAddImages(nextFiles) {
+    setValues((current) => {
+      const imageFiles = [...current.imageFiles, ...nextFiles];
+      return {
+        ...current,
+        imageFiles,
+        primaryImageIndex: imageFiles.length && current.imageFiles.length === 0 ? 0 : current.primaryImageIndex,
+      };
+    });
+    setErrors((current) => {
+      if (!current.imageFiles) return current;
+      const nextErrors = { ...current };
+      delete nextErrors.imageFiles;
+      return nextErrors;
+    });
+  }
+
+  function handleRemoveImage(indexToRemove) {
+    setValues((current) => {
+      const imageFiles = current.imageFiles.filter((_, index) => index !== indexToRemove);
+      const primaryImageIndex = imageFiles.length
+        ? Math.min(current.primaryImageIndex > indexToRemove ? current.primaryImageIndex - 1 : current.primaryImageIndex, imageFiles.length - 1)
+        : 0;
+
+      return {
+        ...current,
+        imageFiles,
+        primaryImageIndex,
+      };
+    });
+  }
+
+  function handleSelectPrimaryImage(index) {
+    setValues((current) => ({ ...current, primaryImageIndex: index }));
   }
 
   function handleNext() {
@@ -92,6 +151,7 @@ export function CustomerOnboardingFlow({ userId, userDoc }) {
         },
         values,
         imageFiles: values.imageFiles,
+        primaryImageIndex: values.primaryImageIndex,
       });
       await markOnboardingComplete(userId, 'customer');
       succeed();

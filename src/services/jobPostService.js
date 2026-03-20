@@ -19,7 +19,7 @@ import { uploadFiles } from './storageService';
 
 const jobPostsCollection = collection(db, 'jobPosts');
 
-export async function createJobPost({ ownerId, ownerSnapshot, values, imageFiles = [] }) {
+export async function createJobPost({ ownerId, ownerSnapshot, values, imageFiles = [], primaryImageIndex = 0 }) {
   const docRef = await addDoc(jobPostsCollection, {
     ownerId,
     ownerSnapshot,
@@ -33,6 +33,7 @@ export async function createJobPost({ ownerId, ownerSnapshot, values, imageFiles
     timeline: values.timeline || null,
     imageUrls: [],
     imageMeta: [],
+    primaryImageUrl: null,
     status: JOB_STATUS.ACTIVE,
     moderationStatus: MODERATION_STATUS.VISIBLE,
     createdAt: serverTimestamp(),
@@ -44,10 +45,12 @@ export async function createJobPost({ ownerId, ownerSnapshot, values, imageFiles
       files: imageFiles,
       pathPrefix: `users/${ownerId}/jobPosts/${docRef.id}`,
     });
+    const primaryImage = uploads[primaryImageIndex] || uploads[0] || null;
 
     await updateDoc(doc(db, 'jobPosts', docRef.id), {
       imageUrls: uploads.map((file) => file.url),
       imageMeta: uploads,
+      primaryImageUrl: primaryImage?.url || null,
       updatedAt: serverTimestamp(),
     });
   }
