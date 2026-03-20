@@ -825,6 +825,7 @@ This is the “must work tonight” scope.
 - show cards
 - allow contractors to browse
 - mobile responsive
+- use normalized `matchingProfile` data for eligibility/ranking rather than reading onboarding fields directly
 
 ---
 
