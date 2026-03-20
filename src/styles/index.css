@@ -359,7 +359,20 @@ input[type='file'] {
   border-radius: 14px;
 }
 .toast--success { background: #e6f7eb; }
-.empty-state { text-align: center; }
+.empty-state {
+  text-align: center;
+}
+
+.empty-state__meta {
+  margin: 0.85rem 0 0;
+  color: var(--text-muted);
+  font-weight: 700;
+}
+
+.empty-state__meta--error {
+  word-break: break-word;
+  font-weight: 500;
+}
 .info-callout {
   background: linear-gradient(180deg, #f6fbf7, #edf6ef);
   padding: 1rem 1.1rem;

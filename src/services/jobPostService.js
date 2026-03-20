@@ -65,17 +65,20 @@ export async function createJobPost({ ownerId, ownerSnapshot, values, imageFiles
   return docRef.id;
 }
 
-export function subscribeToActiveJobs(callback) {
-  const jobsQuery = query(
-    jobPostsCollection,
-    where('status', '==', JOB_STATUS.ACTIVE),
-    where('moderationStatus', '==', MODERATION_STATUS.VISIBLE),
-    orderBy('createdAt', 'desc'),
-  );
+export function subscribeToActiveJobs(callback, onError) {
+  const jobsQuery = query(jobPostsCollection, orderBy('createdAt', 'desc'));
 
-  return onSnapshot(jobsQuery, (snapshot) => {
-    callback(snapshot.docs.map((document) => ({ id: document.id, ...document.data() })));
-  });
+  return onSnapshot(
+    jobsQuery,
+    (snapshot) => {
+      const jobs = snapshot.docs
+        .map((document) => ({ id: document.id, ...document.data() }))
+        .filter((job) => job.status === JOB_STATUS.ACTIVE && job.moderationStatus === MODERATION_STATUS.VISIBLE);
+
+      callback(jobs);
+    },
+    onError,
+  );
 }
 
 export async function getRecentJobs() {

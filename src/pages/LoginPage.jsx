@@ -55,10 +55,24 @@ export function LoginPage() {
       }
     >
       <form className="form-stack" onSubmit={handleSubmit}>
-        <Input label="Email" type="email" value={values.email} error={errors.email} onChange={(e) => handleChange('email', e.target.value)} />
+        <Input
+          label="Email"
+          type="email"
+          name="email"
+          autoComplete="off"
+          autoCapitalize="none"
+          autoCorrect="off"
+          spellCheck={false}
+          inputMode="email"
+          value={values.email}
+          error={errors.email}
+          onChange={(e) => handleChange('email', e.target.value)}
+        />
         <Input
           label="Password"
           type="password"
+          name="password"
+          autoComplete="current-password"
           value={values.password}
           error={errors.password}
           onChange={(e) => handleChange('password', e.target.value)}
