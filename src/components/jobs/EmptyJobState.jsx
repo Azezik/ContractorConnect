@@ -1,6 +1,6 @@
 import { EmptyState } from '../ui/EmptyState';
 
-export function EmptyJobState({ hasFilters = false, availableCount = 0 }) {
+export function EmptyJobState({ hasFilters = false, availableCount = 0, totalActiveJobs = 0 }) {
   if (hasFilters) {
     return (
       <EmptyState
@@ -13,9 +13,11 @@ export function EmptyJobState({ hasFilters = false, availableCount = 0 }) {
 
   return (
     <EmptyState
-      title="You’re all set"
-      description="Your contractor profile is live and working. Matched jobs will appear here as soon as new opportunities line up with your services and coverage area."
-      action={<p className="empty-state__meta">0 matches right now</p>}
+      title={totalActiveJobs ? 'No eligible jobs right now' : 'You’re all set'}
+      description={totalActiveJobs
+        ? 'Active jobs exist, but none currently meet your matching coverage and category requirements. Update your profile inputs if your service area or specialties have changed.'
+        : 'Your contractor profile is live and working. Matched jobs will appear here as soon as new opportunities line up with your services and coverage area.'}
+      action={<p className="empty-state__meta">{availableCount} eligible match{availableCount === 1 ? '' : 'es'} right now</p>}
     />
   );
 }

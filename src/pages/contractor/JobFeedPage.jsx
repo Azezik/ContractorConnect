@@ -11,7 +11,7 @@ import { Input } from '../../components/ui/Input';
 import { Select } from '../../components/ui/Select';
 import { CATEGORY_OPTIONS } from '../../constants/categories';
 import { EmptyState } from '../../components/ui/EmptyState';
-import { evaluateContractorJobMatch } from '../../lib/matching/matchingModel';
+import { buildContractorJobFeed } from '../../lib/matching/matchingModel';
 
 export function JobFeedPage() {
   const { authUser } = useAuth();
@@ -19,23 +19,9 @@ export function JobFeedPage() {
   const { profile, loading: profileLoading } = useContractorProfile(authUser?.uid);
   const [filters, setFilters] = useState({ search: '', category: '', city: '', tag: '' });
 
-  const matchedJobs = useMemo(() => {
-    if (!profile?.matchingProfile?.categories?.length) {
-      return jobs;
-    }
+  const feedState = useMemo(() => buildContractorJobFeed({ contractorProfile: profile, jobs }), [jobs, profile]);
 
-    return jobs
-      .map((job) => ({
-        job,
-        match: evaluateContractorJobMatch({
-          contractorProfile: profile,
-          jobPost: job,
-        }),
-      }))
-      .filter(({ match }) => match.eligible)
-      .sort((left, right) => right.match.score - left.match.score)
-      .map(({ job }) => job);
-  }, [jobs, profile]);
+  const matchedJobs = useMemo(() => feedState.results.map(({ job, match }) => ({ ...job, match })), [feedState.results]);
 
   const filteredJobs = useMemo(() => {
     return matchedJobs.filter((job) => {
@@ -75,7 +61,7 @@ export function JobFeedPage() {
       <SectionHeader
         eyebrow="Contractor feed"
         title="Matched local jobs"
-        description="We use your current contractor profile to surface eligible work first, then let you refine that list with search and filters."
+        description={`We evaluate ${feedState.summary.activeJobCount} active job${feedState.summary.activeJobCount === 1 ? '' : 's'} against your normalized contractor matching profile and only show eligible matches.`}
       />
       <div className="filters card">
         <Input label="Keyword" value={filters.search} onChange={(e) => setFilters((current) => ({ ...current, search: e.target.value }))} />
@@ -88,7 +74,15 @@ export function JobFeedPage() {
         <Input label="City" value={filters.city} onChange={(e) => setFilters((current) => ({ ...current, city: e.target.value }))} />
         <Input label="Tag" value={filters.tag} onChange={(e) => setFilters((current) => ({ ...current, tag: e.target.value }))} />
       </div>
-      {filteredJobs.length ? <JobFeedList jobs={filteredJobs} /> : <EmptyJobState hasFilters={hasFilters} availableCount={matchedJobs.length} />}
+      {filteredJobs.length ? (
+        <JobFeedList jobs={filteredJobs} />
+      ) : (
+        <EmptyJobState
+          hasFilters={hasFilters}
+          availableCount={matchedJobs.length}
+          totalActiveJobs={feedState.summary.activeJobCount}
+        />
+      )}
     </PageContainer>
   );
 }

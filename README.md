@@ -2,6 +2,18 @@
 
 A modular React + Vite + Firebase marketplace for connecting contractors with people who need work done.
 
+## Matching foundation
+
+Contractor Connect matches **contractor profiles to job posts**, not people to people.
+
+The current foundation keeps matching separate from form flows:
+
+- onboarding forms write normal job/profile fields
+- services also persist a normalized `matchingProfile`
+- the contractor feed reads the normalized matching profile instead of scraping raw form fields
+
+See `MATCHING_FOUNDATION.md` for the field audit, normalized model, and MVP scoring design.
+
 ## Scripts
 
 - `npm install`
