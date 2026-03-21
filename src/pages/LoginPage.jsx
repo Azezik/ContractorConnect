@@ -61,7 +61,7 @@ export function LoginPage() {
           type="email"
           name="email"
           placeholder="you@example.com"
-          autoComplete="username"
+          autoComplete="email"
           autoCapitalize="none"
           autoCorrect="off"
           spellCheck={false}

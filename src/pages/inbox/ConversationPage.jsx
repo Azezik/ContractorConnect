@@ -1,10 +1,12 @@
 import { Link, useParams } from 'react-router-dom';
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { PageContainer } from '../../components/layout/PageContainer';
 import { Card } from '../../components/ui/Card';
+import { Badge } from '../../components/ui/Badge';
 import { Textarea } from '../../components/ui/Textarea';
 import { Button } from '../../components/ui/Button';
 import { EmptyState } from '../../components/ui/EmptyState';
+import { Spinner } from '../../components/ui/Spinner';
 import { useCurrentUser } from '../../hooks/useCurrentUser';
 import { markConversationAsRead, subscribeToMessages, sendMessage } from '../../services/messageService';
 import { formatDate } from '../../lib/formatters/dates';
@@ -19,10 +21,12 @@ export function ConversationPage() {
   const [conversation, setConversation] = useState(undefined);
   const [messages, setMessages] = useState([]);
   const [content, setContent] = useState('');
+  const [sending, setSending] = useState(false);
   const [reportStatus, setReportStatus] = useState('');
   const [loadingConversation, setLoadingConversation] = useState(true);
   const [conversationError, setConversationError] = useState('');
   const [messageError, setMessageError] = useState('');
+  const messagesEndRef = useRef(null);
   const accountRole = getAccountRole(userDoc);
   const inboxRoute = getInboxRouteForRole(accountRole);
   const isParticipant = useMemo(
@@ -48,8 +52,8 @@ export function ConversationPage() {
         }
 
         if (!nextConversation.participants?.includes(userId)) {
-          setConversation(nextConversation);
-          setConversationError('You do not have access to this conversation.');
+          setConversation(null);
+          setConversationError('You do not have permission to view this conversation.');
           return;
         }
 
@@ -57,7 +61,12 @@ export function ConversationPage() {
       } catch (error) {
         if (!active) return;
         setConversation(null);
-        setConversationError(error?.message || 'We could not open this conversation right now.');
+        const msg = error?.message || '';
+        if (msg.includes('permission') || msg.includes('Missing or insufficient')) {
+          setConversationError('You do not have permission to view this conversation.');
+        } else {
+          setConversationError('Unable to load this conversation. Please try again.');
+        }
       } finally {
         if (active) {
           setLoadingConversation(false);
@@ -65,18 +74,18 @@ export function ConversationPage() {
       }
     }
 
-    if (conversationId) {
+    if (conversationId && userId) {
       loadConversation();
-    } else {
+    } else if (!conversationId) {
       setConversation(null);
-      setConversationError('A conversation ID is required to open a thread.');
+      setConversationError('A conversation ID is required.');
       setLoadingConversation(false);
     }
 
     return () => {
       active = false;
     };
-  }, [conversationId]);
+  }, [conversationId, userId]);
 
   useEffect(() => {
     if (!conversationId || !conversation || !isParticipant) return undefined;
@@ -86,7 +95,12 @@ export function ConversationPage() {
       conversationId,
       setMessages,
       (error) => {
-        setMessageError(error?.message || 'Messages are unavailable right now.');
+        const msg = error?.message || '';
+        if (msg.includes('permission') || msg.includes('Missing or insufficient')) {
+          setMessageError('Unable to load messages — permission denied.');
+        } else {
+          setMessageError('Messages are unavailable right now.');
+        }
       },
     );
   }, [conversation, conversationId, isParticipant]);
@@ -94,18 +108,17 @@ export function ConversationPage() {
   useEffect(() => {
     if (!conversationId || !isParticipant || !messages.length) return;
 
-    markConversationAsRead(conversationId, userId, messages).catch((error) => {
-      console.error('Unable to mark conversation as read.', error);
-    });
+    markConversationAsRead(conversationId, userId, messages).catch(() => {});
   }, [conversationId, isParticipant, messages, userId]);
+
+  useEffect(() => {
+    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+  }, [messages]);
 
   if (loadingConversation || conversation === undefined) {
     return (
       <PageContainer>
-        <EmptyState
-          title="Loading conversation…"
-          description="We are confirming the thread details and your access before connecting live messages."
-        />
+        <Spinner label="Loading conversation..." />
       </PageContainer>
     );
   }
@@ -116,7 +129,7 @@ export function ConversationPage() {
         <EmptyState
           title="Conversation unavailable"
           description={conversationError}
-          action={<Link to={inboxRoute}>Return to inbox</Link>}
+          action={<Link to={inboxRoute}><Button variant="secondary">Back to inbox</Button></Link>}
         />
       </PageContainer>
     );
@@ -124,49 +137,87 @@ export function ConversationPage() {
 
   async function handleSend(event) {
     event.preventDefault();
-    if (!content.trim()) return;
-    await sendMessage({ conversationId, senderId: userId, content: content.trim() });
-    setContent('');
+    if (!content.trim() || sending) return;
+    setSending(true);
+    try {
+      await sendMessage({ conversationId, senderId: userId, content: content.trim() });
+      setContent('');
+    } catch (error) {
+      setMessageError('Failed to send message. Please try again.');
+    } finally {
+      setSending(false);
+    }
   }
 
   async function handleReportConversation() {
-    await createReport({
-      reporterId: userId,
-      targetType: 'conversation',
-      targetId: conversationId,
-      reason: 'Conversation review requested',
-      details: 'Conversation was reported from the message thread view.',
-      relatedConversationId: conversationId,
-    });
-    setReportStatus('Conversation reported. Moderation queue item created.');
+    try {
+      await createReport({
+        reporterId: userId,
+        targetType: 'conversation',
+        targetId: conversationId,
+        reason: 'Conversation review requested',
+        details: 'Conversation was reported from the message thread view.',
+        relatedConversationId: conversationId,
+      });
+      setReportStatus('Reported — our team will review this conversation.');
+    } catch {
+      setReportStatus('Unable to submit report. Please try again.');
+    }
   }
 
   return (
     <PageContainer>
+      <div style={{ marginBottom: '1rem' }}>
+        <Link to={inboxRoute} style={{ fontSize: '0.9rem' }}>&larr; Back to inbox</Link>
+      </div>
       <div className="conversation-thread-layout">
         <Card>
-          <h1>{conversation?.contextSnapshot?.jobTitle || 'Conversation'}</h1>
-          <p>{conversation?.contextSnapshot?.contractorBusinessName || 'Messaging context'}</p>
-          <Button variant="secondary" onClick={handleReportConversation}>Report conversation</Button>
-          {reportStatus ? <p className="inline-note">{reportStatus}</p> : null}
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: '1rem' }}>
+            <div>
+              <h1 style={{ margin: '0 0 0.25rem' }}>{conversation?.contextSnapshot?.jobTitle || 'Conversation'}</h1>
+              <p style={{ margin: 0, color: 'var(--color-text-muted, #666)' }}>
+                {conversation?.contextSnapshot?.contractorBusinessName || ''}
+              </p>
+            </div>
+            <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
+              <Badge>{conversation?.status || 'active'}</Badge>
+              <Button variant="ghost" onClick={handleReportConversation} style={{ fontSize: '0.8rem' }}>
+                Report
+              </Button>
+            </div>
+          </div>
+          {reportStatus ? <p className="inline-note" style={{ marginTop: '0.5rem' }}>{reportStatus}</p> : null}
         </Card>
-        <Card className="message-thread">
+        <Card className="message-thread" style={{ minHeight: '200px', maxHeight: '60vh', overflowY: 'auto' }}>
           {messageError ? <p className="form-error-banner">{messageError}</p> : null}
           {messages.length ? (
-            messages.map((message) => (
-              <div key={message.id} className={`message-bubble ${message.senderId === userId ? 'is-own' : ''}`}>
-                <p>{message.content}</p>
-                <small>{formatDate(message.createdAt)}</small>
-              </div>
-            ))
+            <>
+              {messages.map((message) => (
+                <div key={message.id} className={`message-bubble ${message.senderId === userId ? 'is-own' : ''}`}>
+                  <p>{message.content}</p>
+                  <small>{formatDate(message.createdAt)}</small>
+                </div>
+              ))}
+              <div ref={messagesEndRef} />
+            </>
           ) : (
-            <p>No messages yet.</p>
+            <div style={{ textAlign: 'center', padding: '2rem', color: 'var(--color-text-muted, #999)' }}>
+              <p>No messages yet. Send the first message to start the conversation.</p>
+            </div>
           )}
         </Card>
         <Card>
           <form className="form-stack" onSubmit={handleSend}>
-            <Textarea label="Reply" rows={4} value={content} onChange={(e) => setContent(e.target.value)} />
-            <Button type="submit">Send message</Button>
+            <Textarea
+              label="Message"
+              rows={3}
+              placeholder="Type your message..."
+              value={content}
+              onChange={(e) => setContent(e.target.value)}
+            />
+            <Button type="submit" disabled={sending || !content.trim()}>
+              {sending ? 'Sending...' : 'Send message'}
+            </Button>
           </form>
         </Card>
       </div>
