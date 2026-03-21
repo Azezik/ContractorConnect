@@ -5,28 +5,42 @@ import { SectionHeader } from '../../components/layout/SectionHeader';
 import { Card } from '../../components/ui/Card';
 import { Badge } from '../../components/ui/Badge';
 import { EmptyState } from '../../components/ui/EmptyState';
+import { Spinner } from '../../components/ui/Spinner';
 import { useCurrentUser } from '../../hooks/useCurrentUser';
 import { useConversationUnreadCount } from '../../hooks/useConversationUnreadCount';
 import { subscribeToUserConversations } from '../../services/conversationService';
 import { formatDate } from '../../lib/formatters/dates';
 import { getAccountRole } from '../../lib/auth/accountRole';
 import { getConversationRouteForRole } from '../../lib/guards/onboardingHelpers';
+import { ACCOUNT_ROLES } from '../../constants/roles';
 
 function ConversationListItem({ conversation, accountRole, userId }) {
   const unreadCount = useConversationUnreadCount(conversation.id, userId);
   const hasUnread = unreadCount > 0;
 
+  const otherPartyLabel = accountRole === ACCOUNT_ROLES.CLIENT
+    ? conversation.contextSnapshot?.contractorBusinessName || 'Contractor'
+    : conversation.contextSnapshot?.clientName || 'Client';
+
+  const previewText = conversation.lastMessagePreview
+    ? conversation.lastMessagePreview
+    : 'No messages yet — start the conversation.';
+
   return (
-    <Link key={conversation.id} to={getConversationRouteForRole(accountRole, conversation.id)}>
-      <Card className="conversation-list__item">
+    <Link to={getConversationRouteForRole(accountRole, conversation.id)} style={{ textDecoration: 'none' }}>
+      <Card className="conversation-list__item" style={{ marginBottom: '0.75rem', cursor: 'pointer' }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', gap: '0.75rem', alignItems: 'center' }}>
-          <strong>{conversation.contextSnapshot?.jobTitle || 'Conversation'}</strong>
-          {hasUnread ? <Badge variant="success">{unreadCount} unread</Badge> : <Badge>Read</Badge>}
+          <div style={{ minWidth: 0 }}>
+            <strong style={{ display: 'block' }}>{conversation.contextSnapshot?.jobTitle || 'Conversation'}</strong>
+            <small style={{ color: 'var(--color-text-muted, #666)' }}>{otherPartyLabel}</small>
+          </div>
+          {hasUnread ? <Badge variant="success">{unreadCount} new</Badge> : null}
         </div>
-        <p>{conversation.lastMessagePreview || 'No messages yet. Start the thread from a job post to begin messaging.'}</p>
-        <small>
+        <p style={{ margin: '0.5rem 0', fontSize: '0.9rem', color: hasUnread ? 'inherit' : 'var(--color-text-muted, #666)' }}>
+          {previewText}
+        </p>
+        <small style={{ color: 'var(--color-text-muted, #999)' }}>
           {formatDate(conversation.lastMessageAt || conversation.updatedAt)}
-          {conversation.contextSnapshot?.contractorBusinessName ? ` · ${conversation.contextSnapshot.contractorBusinessName}` : ''}
         </small>
       </Card>
     </Link>
@@ -53,7 +67,10 @@ export function InboxPage() {
     return subscribeToUserConversations(
       userId,
       (nextConversations) => {
-        setConversations(nextConversations);
+        const participantConversations = nextConversations.filter(
+          (c) => Array.isArray(c.participants) && c.participants.includes(userId),
+        );
+        setConversations(participantConversations);
         setLoading(false);
       },
       (subscriptionError) => {
@@ -67,19 +84,16 @@ export function InboxPage() {
     <PageContainer>
       <SectionHeader
         eyebrow="Inbox"
-        title="Platform messaging"
-        description="Messaging is shared capability, but the route remains inside your current account bucket so client and contractor navigation stay separate."
+        title="Messages"
+        description="Your conversations with clients and contractors, organized by job post."
       />
       <div className="conversation-list">
         {loading ? (
-          <EmptyState
-            title="Loading conversations…"
-            description="We are checking your inbox and unread state now."
-          />
+          <Spinner label="Loading conversations..." />
         ) : error ? (
           <EmptyState
-            title="Inbox unavailable"
-            description="Your inbox request failed instead of silently hanging. Please try again in a moment."
+            title="Unable to load inbox"
+            description="Something went wrong loading your conversations. Please refresh and try again."
             action={<p className="empty-state__meta empty-state__meta--error">{error}</p>}
           />
         ) : conversations.length ? (
@@ -94,7 +108,7 @@ export function InboxPage() {
         ) : (
           <EmptyState
             title="No conversations yet"
-            description="When you message from a job post, the thread will appear here with unread tracking automatically."
+            description="Conversations are created when you reach out from a job post. Your message threads will appear here."
           />
         )}
       </div>

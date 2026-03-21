@@ -17,6 +17,10 @@ service cloud.firestore {
       return signedIn() && request.auth.uid in request.resource.data.participants;
     }
 
+    function isParticipantOfConversation(conversationId) {
+      return signedIn() && request.auth.uid in get(/databases/$(database)/documents/conversations/$(conversationId)).data.participants;
+    }
+
     match /users/{userId} {
       allow create, read, update: if isOwner(userId);
       allow delete: if false;
@@ -41,9 +45,10 @@ service cloud.firestore {
       allow delete: if false;
 
       match /messages/{messageId} {
-        allow read: if isConversationParticipant();
-        allow create: if isConversationParticipant() && request.resource.data.senderId == request.auth.uid;
-        allow update, delete: if false;
+        allow read: if isParticipantOfConversation(conversationId);
+        allow create: if isParticipantOfConversation(conversationId) && request.resource.data.senderId == request.auth.uid;
+        allow update: if isParticipantOfConversation(conversationId);
+        allow delete: if false;
       }
     }
 
