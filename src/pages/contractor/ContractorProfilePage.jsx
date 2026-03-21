@@ -9,6 +9,7 @@ import { useContractorProfile } from '../../hooks/useContractorProfile';
 import { subscribeToContractorReviews } from '../../services/reviewService';
 import { formatDate } from '../../lib/formatters/dates';
 import { ROUTES } from '../../constants/routes';
+import { AVAILABILITY_LABELS } from '../../constants/availability';
 
 function formatWorkRadius(workRadiusKm) {
   if (!workRadiusKm) return null;
@@ -59,15 +60,19 @@ export function ContractorProfilePage() {
     ? (reviews.reduce((sum, r) => sum + Number(r.rating || 0), 0) / reviews.length).toFixed(1)
     : null;
 
+  const availabilityLabel = profile.availabilityStatus
+    ? AVAILABILITY_LABELS[profile.availabilityStatus] || profile.availabilityStatus
+    : 'Available for work';
+
   return (
     <PageContainer>
-      {/* Hero / Header */}
+      {/* Hero */}
       <Card style={{ marginBottom: '1.5rem' }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: '1rem' }}>
           <div style={{ flex: '1 1 auto' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginBottom: '0.5rem', flexWrap: 'wrap' }}>
               <h1 style={{ margin: 0 }}>{profile.businessName}</h1>
-              <Badge variant="success">{profile.availabilityStatus || 'Available'}</Badge>
+              <Badge variant="success">{availabilityLabel}</Badge>
             </div>
             {profile.displayName && (
               <p style={{ margin: '0 0 0.25rem', color: 'var(--color-text-muted, #666)', fontSize: '1rem' }}>
@@ -75,7 +80,7 @@ export function ContractorProfilePage() {
               </p>
             )}
             {profile.categories?.length > 0 && (
-              <p style={{ margin: '0.25rem 0', fontSize: '0.9rem', color: 'var(--color-text-muted, #666)' }}>
+              <p style={{ margin: '0.25rem 0 0', fontSize: '0.9rem', color: 'var(--color-text-muted, #666)' }}>
                 {profile.categories.join(' · ')}
               </p>
             )}
@@ -83,11 +88,13 @@ export function ContractorProfilePage() {
               <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginTop: '0.5rem' }}>
                 <StarRating rating={Number(averageRating)} />
                 <span style={{ fontWeight: 600 }}>{averageRating}</span>
-                <span style={{ color: 'var(--color-text-muted, #666)', fontSize: '0.9rem' }}>({reviews.length} review{reviews.length === 1 ? '' : 's'})</span>
+                <span style={{ color: 'var(--color-text-muted, #666)', fontSize: '0.9rem' }}>
+                  ({reviews.length} review{reviews.length === 1 ? '' : 's'})
+                </span>
               </div>
             )}
           </div>
-          <Link to={ROUTES.CONTRACTOR_SETTINGS}>
+          <Link to={ROUTES.CONTRACTOR_PROFILE_EDIT}>
             <Button variant="secondary">Edit profile</Button>
           </Link>
         </div>
@@ -122,7 +129,7 @@ export function ContractorProfilePage() {
           <Card style={{ marginBottom: '1.5rem' }}>
             <h3 style={{ margin: '0 0 1rem' }}>Portfolio</h3>
             {profile.imageUrls?.length ? (
-              <div className="image-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(140px, 1fr))', gap: '0.75rem' }}>
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(140px, 1fr))', gap: '0.75rem' }}>
                 {profile.imageUrls.map((url) => (
                   <img
                     key={url}
@@ -134,7 +141,7 @@ export function ContractorProfilePage() {
               </div>
             ) : (
               <p style={{ color: 'var(--color-text-muted, #666)', margin: 0 }}>
-                No portfolio images yet. Add photos of your work from settings.
+                No portfolio images yet. Add photos of your work from the profile editor.
               </p>
             )}
           </Card>
@@ -161,7 +168,7 @@ export function ContractorProfilePage() {
               </div>
             ) : (
               <p style={{ color: 'var(--color-text-muted, #666)', margin: 0 }}>
-                No reviews yet. Reviews from clients will appear here after completed jobs.
+                No reviews yet. Reviews from clients will appear here after completed projects.
               </p>
             )}
           </Card>
@@ -212,16 +219,16 @@ export function ContractorProfilePage() {
 
           {/* Quick actions */}
           <Card>
-            <h3 style={{ margin: '0 0 1rem' }}>Profile actions</h3>
+            <h3 style={{ margin: '0 0 1rem' }}>Quick actions</h3>
             <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
-              <Link to={ROUTES.CONTRACTOR_SETTINGS}>
-                <Button variant="secondary" style={{ width: '100%' }}>Edit profile & settings</Button>
+              <Link to={ROUTES.CONTRACTOR_PROFILE_EDIT}>
+                <Button variant="secondary" style={{ width: '100%' }}>Edit profile</Button>
               </Link>
               <Link to={ROUTES.CONTRACTOR_FEED}>
                 <Button variant="ghost" style={{ width: '100%' }}>Browse job feed</Button>
               </Link>
               <Link to={ROUTES.CONTRACTOR_INBOX}>
-                <Button variant="ghost" style={{ width: '100%' }}>View messages</Button>
+                <Button variant="ghost" style={{ width: '100%' }}>View inbox</Button>
               </Link>
             </div>
           </Card>

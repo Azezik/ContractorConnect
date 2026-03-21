@@ -20,6 +20,7 @@ export const ROUTES = {
   CONTRACTOR_FEED: '/contractor/jobs/feed',
   CONTRACTOR_PROFILE: '/contractor/profile',
   CONTRACTOR_INBOX: '/contractor/inbox',
+  CONTRACTOR_PROFILE_EDIT: '/contractor/profile/edit',
   CONTRACTOR_SETTINGS: '/contractor/settings',
 
   MODERATION_QUEUE: '/moderation/queue',

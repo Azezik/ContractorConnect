@@ -59,6 +59,7 @@ export function ContractorJobDetailsPage() {
       relatedContractorProfileId: userId,
       contextSnapshot: {
         jobTitle: job.title,
+        clientName: job.ownerSnapshot?.fullName || 'Client',
         contractorBusinessName:
           contractorProfile?.businessName || contractorProfile?.displayName || userDoc?.fullName || 'Contractor',
         contractorCategories: contractorProfile?.categories || [],
@@ -98,7 +99,7 @@ export function ContractorJobDetailsPage() {
                 {job.imageUrls.map((url) => <img key={url} src={url} alt={job.title} />)}
               </div>
             ) : (
-              <p>Image support is architected now. This post does not include photos yet.</p>
+              <p>This post does not include photos yet.</p>
             )}
           </Card>
         </div>
@@ -106,9 +107,9 @@ export function ContractorJobDetailsPage() {
           <JobMetaPanel job={job} />
           {canMessage ? (
             <Card>
-              <h3>Message this client</h3>
+              <h3>Send a message</h3>
               <p>
-                Messaging is account-based and stays inside the contractor workspace. Client email addresses are never exposed publicly.
+                Your message will be delivered to the job poster's inbox. Contact details are never shared publicly.
               </p>
               <Textarea label="Opening message" rows={5} value={message} onChange={(e) => setMessage(e.target.value)} />
               <Button onClick={handleStartConversation}>Start conversation</Button>

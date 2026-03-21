@@ -101,5 +101,18 @@ export async function getJobPost(jobId) {
 export async function getUserJobPosts(userId) {
   const jobsQuery = query(jobPostsCollection, where('ownerId', '==', userId), orderBy('createdAt', 'desc'));
   const snapshot = await getDocs(jobsQuery);
-  return snapshot.docs.map((document) => ({ id: document.id, ...document.data() }));
+  return snapshot.docs
+    .map((document) => ({ id: document.id, ...document.data() }))
+    .filter((job) => job.status !== JOB_STATUS.DELETED);
+}
+
+export async function deleteJobPost(jobId, userId) {
+  const jobDoc = await getJobPost(jobId);
+  if (!jobDoc || jobDoc.ownerId !== userId) {
+    throw new Error('You do not have permission to delete this job.');
+  }
+  await updateDoc(doc(db, 'jobPosts', jobId), {
+    status: JOB_STATUS.DELETED,
+    updatedAt: serverTimestamp(),
+  });
 }

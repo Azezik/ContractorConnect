@@ -14,6 +14,7 @@ import { ContractorHomePage } from '../../pages/contractor/ContractorHomePage';
 import { CreateJobPage } from '../../pages/customer/CreateJobPage';
 import { JobFeedPage } from '../../pages/contractor/JobFeedPage';
 import { ContractorProfilePage } from '../../pages/contractor/ContractorProfilePage';
+import { ContractorProfileEditPage } from '../../pages/contractor/ContractorProfileEditPage';
 import { ClientJobDetailsPage } from '../../pages/jobs/ClientJobDetailsPage';
 import { ContractorJobDetailsPage } from '../../pages/jobs/ContractorJobDetailsPage';
 import { MyJobPostsPage } from '../../pages/jobs/MyJobPostsPage';
@@ -67,6 +68,7 @@ export function AppRouter() {
             <Route path={ROUTES.CONTRACTOR_HOME} element={<ContractorHomePage />} />
             <Route path={ROUTES.CONTRACTOR_FEED} element={<JobFeedPage />} />
             <Route path={ROUTES.CONTRACTOR_PROFILE} element={<ContractorProfilePage />} />
+            <Route path={ROUTES.CONTRACTOR_PROFILE_EDIT} element={<ContractorProfileEditPage />} />
             <Route path="/contractor/jobs/:jobId" element={<ContractorJobDetailsPage />} />
             <Route path={ROUTES.CONTRACTOR_INBOX} element={<InboxPage />} />
             <Route path="/contractor/inbox/:conversationId" element={<ConversationPage />} />
