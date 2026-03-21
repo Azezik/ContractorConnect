@@ -9,6 +9,7 @@ import { Button } from '../../components/ui/Button';
 import { Spinner } from '../../components/ui/Spinner';
 import { Textarea } from '../../components/ui/Textarea';
 import { useJobDetails } from '../../hooks/useJobDetails';
+import { useContractorProfile } from '../../hooks/useContractorProfile';
 import { useCurrentUser } from '../../hooks/useCurrentUser';
 import { createConversation } from '../../services/conversationService';
 import { sendMessage } from '../../services/messageService';
@@ -21,6 +22,7 @@ export function ContractorJobDetailsPage() {
   const navigate = useNavigate();
   const { job, loading } = useJobDetails(jobId);
   const { userId, userDoc } = useCurrentUser();
+  const { profile: contractorProfile } = useContractorProfile(userId);
   const [message, setMessage] = useState('');
   const [status, setStatus] = useState('');
 
@@ -57,9 +59,11 @@ export function ContractorJobDetailsPage() {
       relatedContractorProfileId: userId,
       contextSnapshot: {
         jobTitle: job.title,
-        contractorBusinessName: userDoc?.fullName || 'Contractor',
-        contractorCategories: [],
-        serviceArea: userDoc?.city || null,
+        contractorBusinessName:
+          contractorProfile?.businessName || contractorProfile?.displayName || userDoc?.fullName || 'Contractor',
+        contractorCategories: contractorProfile?.categories || [],
+        serviceArea:
+          contractorProfile?.serviceArea || contractorProfile?.serviceAreaDescription || userDoc?.city || job.city || null,
       },
     });
 

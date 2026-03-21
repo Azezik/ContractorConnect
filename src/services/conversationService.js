@@ -60,16 +60,23 @@ export async function getConversation(conversationId) {
   return snapshot.exists() ? { id: snapshot.id, ...snapshot.data() } : null;
 }
 
-export function subscribeToUserConversations(userId, callback) {
+export function subscribeToUserConversations(userId, callback, onError) {
   const conversationsQuery = query(
     conversationsCollection,
     where('participants', 'array-contains', userId),
     orderBy('updatedAt', 'desc'),
   );
 
-  return onSnapshot(conversationsQuery, (snapshot) => {
-    callback(snapshot.docs.map((document) => ({ id: document.id, ...document.data() })));
-  });
+  return onSnapshot(
+    conversationsQuery,
+    (snapshot) => {
+      callback(snapshot.docs.map((document) => ({ id: document.id, ...document.data() })));
+    },
+    (error) => {
+      console.error('Unable to subscribe to conversations.', error);
+      onError?.(error);
+    },
+  );
 }
 
 export async function touchConversation(conversationId, preview) {

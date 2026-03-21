@@ -1,6 +1,7 @@
 import { addDoc, collection, getDocs, orderBy, query, serverTimestamp } from 'firebase/firestore';
 import { db } from '../firebase/firebase';
 
+// Supported target types currently include: jobPost, contractorProfile, conversation, message, review, account.
 export async function createReport({ reporterId, targetType, targetId, reason, details, relatedConversationId = null }) {
   const reportRef = await addDoc(collection(db, 'reports'), {
     reporterId,
