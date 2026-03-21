@@ -175,9 +175,11 @@ export function ConversationPage() {
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: '1rem' }}>
             <div>
               <h1 style={{ margin: '0 0 0.25rem' }}>{conversation?.contextSnapshot?.jobTitle || 'Conversation'}</h1>
-              <p style={{ margin: 0, color: 'var(--color-text-muted, #666)' }}>
-                {conversation?.contextSnapshot?.contractorBusinessName || ''}
-              </p>
+              {conversation?.contextSnapshot?.contractorBusinessName && (
+                <p style={{ margin: 0, color: 'var(--color-text-muted, #666)' }}>
+                  {conversation.contextSnapshot.contractorBusinessName}
+                </p>
+              )}
             </div>
             <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
               <Badge>{conversation?.status || 'active'}</Badge>

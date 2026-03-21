@@ -20,28 +20,31 @@ function ConversationListItem({ conversation, accountRole, userId }) {
 
   const otherPartyLabel = accountRole === ACCOUNT_ROLES.CLIENT
     ? conversation.contextSnapshot?.contractorBusinessName || 'Contractor'
-    : conversation.contextSnapshot?.clientName || 'Client';
+    : conversation.contextSnapshot?.clientName || conversation.contextSnapshot?.jobTitle || 'Client';
 
-  const previewText = conversation.lastMessagePreview
-    ? conversation.lastMessagePreview
-    : 'No messages yet — start the conversation.';
+  const previewText = conversation.lastMessagePreview || null;
+  const jobTitle = conversation.contextSnapshot?.jobTitle || 'Conversation';
 
   return (
     <Link to={getConversationRouteForRole(accountRole, conversation.id)} style={{ textDecoration: 'none' }}>
       <Card className="conversation-list__item" style={{ marginBottom: '0.75rem', cursor: 'pointer' }}>
-        <div style={{ display: 'flex', justifyContent: 'space-between', gap: '0.75rem', alignItems: 'center' }}>
-          <div style={{ minWidth: 0 }}>
-            <strong style={{ display: 'block' }}>{conversation.contextSnapshot?.jobTitle || 'Conversation'}</strong>
+        <div style={{ display: 'flex', justifyContent: 'space-between', gap: '0.75rem', alignItems: 'flex-start' }}>
+          <div style={{ minWidth: 0, flex: '1 1 auto' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', flexWrap: 'wrap' }}>
+              <strong style={{ display: 'block' }}>{jobTitle}</strong>
+              {hasUnread && <Badge variant="success">{unreadCount} new</Badge>}
+            </div>
             <small style={{ color: 'var(--color-text-muted, #666)' }}>{otherPartyLabel}</small>
           </div>
-          {hasUnread ? <Badge variant="success">{unreadCount} new</Badge> : null}
+          <small style={{ color: 'var(--color-text-muted, #999)', whiteSpace: 'nowrap', flexShrink: 0 }}>
+            {formatDate(conversation.lastMessageAt || conversation.updatedAt)}
+          </small>
         </div>
-        <p style={{ margin: '0.5rem 0', fontSize: '0.9rem', color: hasUnread ? 'inherit' : 'var(--color-text-muted, #666)' }}>
-          {previewText}
-        </p>
-        <small style={{ color: 'var(--color-text-muted, #999)' }}>
-          {formatDate(conversation.lastMessageAt || conversation.updatedAt)}
-        </small>
+        {previewText && (
+          <p style={{ margin: '0.5rem 0 0', fontSize: '0.9rem', color: hasUnread ? 'inherit' : 'var(--color-text-muted, #666)' }}>
+            {previewText}
+          </p>
+        )}
       </Card>
     </Link>
   );
@@ -67,10 +70,13 @@ export function InboxPage() {
     return subscribeToUserConversations(
       userId,
       (nextConversations) => {
-        const participantConversations = nextConversations.filter(
-          (c) => Array.isArray(c.participants) && c.participants.includes(userId),
+        const realConversations = nextConversations.filter(
+          (c) =>
+            Array.isArray(c.participants) &&
+            c.participants.includes(userId) &&
+            c.lastMessageAt != null,
         );
-        setConversations(participantConversations);
+        setConversations(realConversations);
         setLoading(false);
       },
       (subscriptionError) => {
@@ -85,7 +91,7 @@ export function InboxPage() {
       <SectionHeader
         eyebrow="Inbox"
         title="Messages"
-        description="Your conversations with clients and contractors, organized by job post."
+        description="Your conversations, organized by job post."
       />
       <div className="conversation-list">
         {loading ? (
@@ -108,7 +114,7 @@ export function InboxPage() {
         ) : (
           <EmptyState
             title="No conversations yet"
-            description="Conversations are created when you reach out from a job post. Your message threads will appear here."
+            description="Conversations appear here when you or another party sends a message from a job post."
           />
         )}
       </div>

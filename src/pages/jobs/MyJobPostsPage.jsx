@@ -43,7 +43,7 @@ export function MyJobPostsPage() {
       <SectionHeader
         eyebrow="My jobs"
         title="Manage your job posts"
-        description="View, edit, and manage the jobs you've posted. Track their status and connect with interested contractors."
+        description="View and manage the jobs you've posted. Track status and connect with interested contractors."
         action={<Link to={ROUTES.CLIENT_JOBS_NEW}><Button>Post a new job</Button></Link>}
       />
       {jobs.length > 0 && (

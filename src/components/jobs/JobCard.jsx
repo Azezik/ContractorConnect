@@ -1,12 +1,13 @@
 import { Link } from 'react-router-dom';
 import { Card } from '../ui/Card';
 import { Badge } from '../ui/Badge';
+import { Button } from '../ui/Button';
 import { truncateText } from '../../lib/formatters/text';
 import { formatDate } from '../../lib/formatters/dates';
 import { formatLocation } from '../../lib/formatters/location';
 import { getJobDetailsRouteForRole } from '../../lib/guards/onboardingHelpers';
 
-export function JobCard({ job, viewerRole }) {
+export function JobCard({ job, viewerRole, onDismiss }) {
   const sharedTerms = [
     ...(job.match?.highlights?.serviceOverlap || []),
     ...(job.match?.highlights?.tagOverlap || []),
@@ -33,7 +34,18 @@ export function JobCard({ job, viewerRole }) {
       </div>
       <div className="job-card__footer">
         <span>{formatLocation(job.city, job.postalCode)}</span>
-        <Link to={getJobDetailsRouteForRole(viewerRole, job.id)}>View details →</Link>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+          {onDismiss && (
+            <Button
+              variant="ghost"
+              onClick={(e) => { e.preventDefault(); onDismiss(job.id); }}
+              style={{ fontSize: '0.8rem', padding: '0.3rem 0.6rem', color: 'var(--muted)' }}
+            >
+              Not interested
+            </Button>
+          )}
+          <Link to={getJobDetailsRouteForRole(viewerRole, job.id)}>View details &rarr;</Link>
+        </div>
       </div>
     </Card>
   );

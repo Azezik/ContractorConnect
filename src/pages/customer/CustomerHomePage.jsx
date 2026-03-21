@@ -8,12 +8,12 @@ import { Badge } from '../../components/ui/Badge';
 import { ROUTES } from '../../constants/routes';
 import { useCurrentUser } from '../../hooks/useCurrentUser';
 import { getUserJobPosts } from '../../services/jobPostService';
-import { JobFeedList } from '../../components/jobs/JobFeedList';
-import { ACCOUNT_ROLES } from '../../constants/roles';
+import { subscribeToUserConversations } from '../../services/conversationService';
 
 export function CustomerHomePage() {
   const { userId, userDoc } = useCurrentUser();
   const [jobs, setJobs] = useState([]);
+  const [conversationCount, setConversationCount] = useState(0);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -25,15 +25,26 @@ export function CustomerHomePage() {
     });
   }, [userId]);
 
+  useEffect(() => {
+    if (!userId) return undefined;
+    return subscribeToUserConversations(
+      userId,
+      (conversations) => {
+        const real = conversations.filter((c) => c.lastMessageAt != null);
+        setConversationCount(real.length);
+      },
+    );
+  }, [userId]);
+
   const activeJobs = jobs.filter((job) => job.status === 'active');
   const closedJobs = jobs.filter((job) => job.status === 'closed' || job.status === 'paused');
 
   return (
     <PageContainer>
       <SectionHeader
-        eyebrow={<>Client dashboard <Badge>Client</Badge></>}
+        eyebrow={<>Dashboard <Badge>Client</Badge></>}
         title={`Welcome back, ${userDoc?.fullName?.split(' ')[0] || 'there'}`}
-        description="Review your posted jobs, create new requests, and manage contractor conversations."
+        description="Your project overview and quick actions."
         action={
           <Link to={ROUTES.CLIENT_JOBS_NEW}>
             <Button>Post a new job</Button>
@@ -42,24 +53,48 @@ export function CustomerHomePage() {
       />
       <div className="stats-grid">
         <Card>
-          <strong>{loading ? '—' : jobs.length}</strong>
+          <strong>{loading ? '...' : jobs.length}</strong>
           <span>Total job posts</span>
         </Card>
         <Card>
-          <strong>{loading ? '—' : activeJobs.length}</strong>
+          <strong>{loading ? '...' : activeJobs.length}</strong>
           <span>Active jobs</span>
         </Card>
         <Card>
-          <strong>{loading ? '—' : closedJobs.length}</strong>
+          <strong>{loading ? '...' : closedJobs.length}</strong>
           <span>Closed / paused</span>
         </Card>
+        <Card>
+          <strong>{conversationCount}</strong>
+          <span>Active conversations</span>
+        </Card>
       </div>
-      {jobs.length > 0 && (
-        <>
-          <h2 style={{ margin: '2rem 0 1rem' }}>Recent job posts</h2>
-          <JobFeedList jobs={jobs} viewerRole={ACCOUNT_ROLES.CLIENT} />
-        </>
-      )}
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))', gap: '1.25rem', marginTop: '2rem' }}>
+        <Link to={ROUTES.CLIENT_JOBS} style={{ textDecoration: 'none' }}>
+          <Card style={{ height: '100%' }}>
+            <h3 style={{ margin: '0 0 0.5rem' }}>Manage jobs</h3>
+            <p style={{ margin: 0, fontSize: '0.9rem', color: 'var(--color-text-muted, #666)' }}>
+              View, edit, and manage your posted jobs. Track status and delete posts you no longer need.
+            </p>
+          </Card>
+        </Link>
+        <Link to={ROUTES.CLIENT_INBOX} style={{ textDecoration: 'none' }}>
+          <Card style={{ height: '100%' }}>
+            <h3 style={{ margin: '0 0 0.5rem' }}>Inbox</h3>
+            <p style={{ margin: 0, fontSize: '0.9rem', color: 'var(--color-text-muted, #666)' }}>
+              View and respond to messages from contractors interested in your projects.
+            </p>
+          </Card>
+        </Link>
+        <Link to={ROUTES.CLIENT_JOBS_NEW} style={{ textDecoration: 'none' }}>
+          <Card style={{ height: '100%' }}>
+            <h3 style={{ margin: '0 0 0.5rem' }}>Post a new job</h3>
+            <p style={{ margin: 0, fontSize: '0.9rem', color: 'var(--color-text-muted, #666)' }}>
+              Create a new job listing to connect with local contractors for your project.
+            </p>
+          </Card>
+        </Link>
+      </div>
       {!loading && jobs.length === 0 && (
         <Card style={{ marginTop: '2rem', textAlign: 'center', padding: '2rem' }}>
           <h3>No job posts yet</h3>

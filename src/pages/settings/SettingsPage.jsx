@@ -122,9 +122,14 @@ export function SettingsPage() {
               <p style={{ margin: '0 0 1rem', fontSize: '0.9rem', color: 'var(--color-text-muted, #666)' }}>
                 Your public contractor profile (business name, services, portfolio) is managed separately from your account settings.
               </p>
-              <Link to={ROUTES.CONTRACTOR_PROFILE}>
-                <Button variant="secondary">Go to contractor profile</Button>
-              </Link>
+              <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
+                <Link to={ROUTES.CONTRACTOR_PROFILE_EDIT}>
+                  <Button variant="secondary">Edit contractor profile</Button>
+                </Link>
+                <Link to={ROUTES.CONTRACTOR_PROFILE}>
+                  <Button variant="ghost">View public profile</Button>
+                </Link>
+              </div>
             </Card>
           )}
         </div>
