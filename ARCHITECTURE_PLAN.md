@@ -465,7 +465,7 @@ User-submitted reports across the platform.
 ```js
 {
   reporterId: string,
-  targetType: string, // "jobPost", "contractorProfile", "message", "review", "account"
+  targetType: string, // "jobPost", "contractorProfile", "conversation", "message", "review", "account"
   targetId: string,
   relatedConversationId: string | null,
   reason: string,

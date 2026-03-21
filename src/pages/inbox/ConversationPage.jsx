@@ -1,16 +1,17 @@
-import { Navigate, useParams } from 'react-router-dom';
-import { useEffect, useState } from 'react';
+import { Link, useParams } from 'react-router-dom';
+import { useEffect, useMemo, useState } from 'react';
 import { PageContainer } from '../../components/layout/PageContainer';
 import { Card } from '../../components/ui/Card';
 import { Textarea } from '../../components/ui/Textarea';
 import { Button } from '../../components/ui/Button';
+import { EmptyState } from '../../components/ui/EmptyState';
 import { useCurrentUser } from '../../hooks/useCurrentUser';
-import { subscribeToMessages, sendMessage } from '../../services/messageService';
+import { markConversationAsRead, subscribeToMessages, sendMessage } from '../../services/messageService';
 import { formatDate } from '../../lib/formatters/dates';
 import { createReport } from '../../services/reportService';
 import { getConversation } from '../../services/conversationService';
 import { getAccountRole } from '../../lib/auth/accountRole';
-import { getHomeRouteForRole } from '../../lib/guards/onboardingHelpers';
+import { getInboxRouteForRole } from '../../lib/guards/onboardingHelpers';
 
 export function ConversationPage() {
   const { conversationId } = useParams();
@@ -19,20 +20,57 @@ export function ConversationPage() {
   const [messages, setMessages] = useState([]);
   const [content, setContent] = useState('');
   const [reportStatus, setReportStatus] = useState('');
+  const [loadingConversation, setLoadingConversation] = useState(true);
+  const [conversationError, setConversationError] = useState('');
+  const [messageError, setMessageError] = useState('');
   const accountRole = getAccountRole(userDoc);
+  const inboxRoute = getInboxRouteForRole(accountRole);
+  const isParticipant = useMemo(
+    () => Boolean(conversation?.participants?.includes(userId)),
+    [conversation, userId],
+  );
 
   useEffect(() => {
     let active = true;
 
     async function loadConversation() {
-      const nextConversation = await getConversation(conversationId);
-      if (active) {
+      setLoadingConversation(true);
+      setConversationError('');
+
+      try {
+        const nextConversation = await getConversation(conversationId);
+        if (!active) return;
+
+        if (!nextConversation) {
+          setConversation(null);
+          setConversationError('This conversation could not be found.');
+          return;
+        }
+
+        if (!nextConversation.participants?.includes(userId)) {
+          setConversation(nextConversation);
+          setConversationError('You do not have access to this conversation.');
+          return;
+        }
+
         setConversation(nextConversation);
+      } catch (error) {
+        if (!active) return;
+        setConversation(null);
+        setConversationError(error?.message || 'We could not open this conversation right now.');
+      } finally {
+        if (active) {
+          setLoadingConversation(false);
+        }
       }
     }
 
     if (conversationId) {
       loadConversation();
+    } else {
+      setConversation(null);
+      setConversationError('A conversation ID is required to open a thread.');
+      setLoadingConversation(false);
     }
 
     return () => {
@@ -41,24 +79,47 @@ export function ConversationPage() {
   }, [conversationId]);
 
   useEffect(() => {
-    if (!conversationId) return undefined;
-    return subscribeToMessages(conversationId, setMessages);
-  }, [conversationId]);
+    if (!conversationId || !conversation || !isParticipant) return undefined;
 
-  if (conversation === undefined) {
+    setMessageError('');
+    return subscribeToMessages(
+      conversationId,
+      setMessages,
+      (error) => {
+        setMessageError(error?.message || 'Messages are unavailable right now.');
+      },
+    );
+  }, [conversation, conversationId, isParticipant]);
+
+  useEffect(() => {
+    if (!conversationId || !isParticipant || !messages.length) return;
+
+    markConversationAsRead(conversationId, userId, messages).catch((error) => {
+      console.error('Unable to mark conversation as read.', error);
+    });
+  }, [conversationId, isParticipant, messages, userId]);
+
+  if (loadingConversation || conversation === undefined) {
     return (
       <PageContainer>
-        <Card>
-          <h1>Loading conversation…</h1>
-        </Card>
+        <EmptyState
+          title="Loading conversation…"
+          description="We are confirming the thread details and your access before connecting live messages."
+        />
       </PageContainer>
     );
   }
 
-  const isParticipant = Boolean(conversation?.participants?.includes(userId));
-
-  if (!conversation || !isParticipant) {
-    return <Navigate to={getHomeRouteForRole(accountRole)} replace />;
+  if (conversationError) {
+    return (
+      <PageContainer>
+        <EmptyState
+          title="Conversation unavailable"
+          description={conversationError}
+          action={<Link to={inboxRoute}>Return to inbox</Link>}
+        />
+      </PageContainer>
+    );
   }
 
   async function handleSend(event) {
@@ -74,7 +135,7 @@ export function ConversationPage() {
       targetType: 'conversation',
       targetId: conversationId,
       reason: 'Conversation review requested',
-      details: 'Conversation was reported from the thread view.',
+      details: 'Conversation was reported from the message thread view.',
       relatedConversationId: conversationId,
     });
     setReportStatus('Conversation reported. Moderation queue item created.');
@@ -90,6 +151,7 @@ export function ConversationPage() {
           {reportStatus ? <p className="inline-note">{reportStatus}</p> : null}
         </Card>
         <Card className="message-thread">
+          {messageError ? <p className="form-error-banner">{messageError}</p> : null}
           {messages.length ? (
             messages.map((message) => (
               <div key={message.id} className={`message-bubble ${message.senderId === userId ? 'is-own' : ''}`}>
